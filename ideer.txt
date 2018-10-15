@@ -1,1 +1,8 @@
 
+Temp mute funksjon for admin
+    Muter en person i et gitt antall minutter, kan bare utføres av admins
+
+Config fil for individuelle servere
+
+Temp ban funksjon for admin
+    Lagrer roller personen har nå, banner dem fra serveren, og unbanner etter gitt tid. Når personen igjen joiner serveren, blir de gamle rollene tildelt brukeren på nytt.

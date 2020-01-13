@@ -1,12 +1,13 @@
 # Discord-bot-py
 
 ## Installasjonskrav:  
-* Internett  
-* Nodejs  
-* ffmpeg (Lydavspilling)  
 * Discord Auth-token
 
 ## Installasjonsprosess:
-1. Installer Python 3.6 på maskinen
-2. Installer discord.py:
-   - pip install discord.py
+- Windows
+  1. Installer Python 3.6 på maskinen
+  2. Installer discord.py:
+    - python3 -m pip install -U discord.py[voice]
+- Linux
+  1. Installer discord.py:
+    - sudo apt install libffi-dev libnacl-dev python3-dev

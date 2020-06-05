@@ -10,6 +10,7 @@
     - python3 -m pip install -U discord.py[voice]
   3. Installer youtubedl
     - python3 -m pip install -U youtube_dl
+  4. Legg ffmpeg.exe i samme mappe som client
 - Linux
   1. Installer discord.py:
     - sudo apt install libffi-dev libnacl-dev python3-dev

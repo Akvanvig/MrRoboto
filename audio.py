@@ -64,7 +64,9 @@ class SongList():
 
     def mergeAudioLists(self, list1, list2):
         resultlist = list(list1)
-        resultlist.extend(x for x in list2 if x not in resultlist)
+        for song in list2:
+            if song not in resultlist:
+                print(song.getJson())
 
         print('Songlists have been merged')
         return resultlist
@@ -117,6 +119,14 @@ class Song():
         self.name = name
         self.filepath = filepath
         self.aliases = aliases
+
+    def __eq__(self, other):
+        if not isinstance(other, Song):
+            return NotImplemented
+        if self.filepath == other.filepath:
+            return True
+        else:
+            return False
 
     def getJson(self):
         return {"name": self.name, "path": self.filepath, "aliases": self.aliases}

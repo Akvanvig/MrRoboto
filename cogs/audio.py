@@ -1,10 +1,9 @@
 import youtube_dl
 import os, json, asyncio, itertools
+
 from async_timeout import timeout
 from functools import partial
 from functions import *
-
-import discord
 from discord.ext import commands
 
 """

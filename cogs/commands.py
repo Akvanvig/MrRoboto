@@ -8,12 +8,12 @@ from discord.ext import commands
 #
 
 class Other(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, client):
+        self.client = client
 
     @commands.command()
     async def latency(self, ctx):
-        await ctx.send("Bot latency is {:.2f} ms".format(self.bot.latency))
+        await ctx.send("Bot latency is {:.2f} ms".format(self.client.latency))
 
     @commands.command()
     async def choose(self, ctx, *choices: str):
@@ -29,5 +29,5 @@ class Other(commands.Cog):
 # SETUP
 #
 
-def setup(bot):
-    bot.add_cog(Other(bot))
+def setup(client):
+    client.add_cog(Other(client))

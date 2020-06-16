@@ -20,8 +20,8 @@ async def _animate(ctx, animation, *, num_loop = 1):
 #
 
 class Animations(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, client):
+        self.client = client
 
     @commands.command()
     async def howdy(self, ctx):
@@ -37,5 +37,5 @@ class Animations(commands.Cog):
 # SETUP
 #
 
-def setup(bot):
-    bot.add_cog(Animations(bot))
+def setup(client):
+    client.add_cog(Animations(client))

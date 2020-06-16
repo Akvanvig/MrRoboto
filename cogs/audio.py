@@ -1,9 +1,13 @@
 import youtube_dl
-import os, json, asyncio, itertools
+import os
+import asyncio
+import itertools
+import discord
+
 
 from async_timeout import timeout
 from functools import partial
-from functions import *
+from common.jsonhelper import *
 from discord.ext import commands
 
 """
@@ -266,11 +270,14 @@ class MusicPlayer:
         """Disconnect and cleanup the player."""
         return self.client.loop.create_task(self._cog.cleanup(guild))
 
-class Music(commands.Cog):
+class Audio(commands.Cog):
     __slots__ = ('client', 'players')
 
-    def __init__(self, client, audioJsonPath, audiofilesPath):
-        self.client = client
+    def __init__(self, bot):
+        audiofilesPath = './media/audio/'
+        audioJsonPath = '{}audio.json'.format(configPath)
+
+        self.bot = bot
         self.players = {}
         self.songlist = SongList(audioJsonPath, audiofilesPath)
         self.audiofilesPath = audiofilesPath
@@ -361,7 +368,7 @@ class Music(commands.Cog):
 
         # If download is False, source will be a dict which will be used later to regather the stream.
         # If download is True, source will be a discord.FFmpegPCMAudio with a VolumeTransformer.
-        source = await YTDLSource.create_source(ctx, search, loop=self.client.loop, download=False)
+        source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop, download=False)
 
         await player.queue.put(source)
 
@@ -381,7 +388,7 @@ class Music(commands.Cog):
             path = self.audiofilesPath + aliasDict[query.lower()]
             print('Requested {}'.format(path))
 
-            source = await YTDLSource.create_source_local(ctx, path, query, loop=self.client.loop)
+            source = await YTDLSource.create_source_local(ctx, path, query, loop=self.bot.loop)
             await player.queue.put(source)
         else:
             await ctx.send('Could not find {}'.format(query))
@@ -505,3 +512,10 @@ class Music(commands.Cog):
             return await ctx.send('I am not currently playing anything!', delete_after=20)
 
         await self.cleanup(ctx.guild)
+
+#
+# SETUP
+#
+
+def setup(bot):
+    bot.add_cog(Audio(bot))

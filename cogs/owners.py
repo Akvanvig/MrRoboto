@@ -12,18 +12,18 @@ from discord.ext import commands
 #
 
 class Owners(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, client):
+        self.client = client
 
     # Check if owner
     async def cog_check(self, ctx):
-       return ctx.author.id in self.bot.owner_ids
+       return ctx.author.id in self.client.owner_ids
 
     # Load module
     @commands.command(hidden=True)
     async def load(self, ctx, *, module):
         try:
-            self.bot.load_extension(module)
+            self.client.load_extension(module)
         except commands.ExtensionError as e:
             await ctx.send(f'{e.__class__.__name__}: {e}')
         else:
@@ -34,7 +34,7 @@ class Owners(commands.Cog):
     async def unload(self, ctx, *, module):
         """Unloads a module."""
         try:
-            self.bot.unload_extension(module)
+            self.client.unload_extension(module)
         except commands.ExtensionError as e:
             await ctx.send(f'{e.__class__.__name__}: {e}')
         else:
@@ -44,7 +44,7 @@ class Owners(commands.Cog):
     @commands.command(hidden=True)
     async def reload(self, ctx, *, module):
         try:
-            self.bot.reload_extension(module)
+            self.client.reload_extension(module)
         except commands.ExtensionError as e:
             await ctx.send(f'{e.__class__.__name__}: {e}')
         else:
@@ -55,8 +55,8 @@ class Owners(commands.Cog):
     async def refreshconf(self, ctx):
         conf = config.getConf()
 
-        self.bot.command_prefix = conf['commandPrefix']
-        self.bot.owner_ids= conf['ownerIds']
+        self.client.command_prefix = conf['commandPrefix']
+        self.client.owner_ids= conf['ownerIds']
 
         await ctx.send('\N{OK HAND SIGN}')
 
@@ -64,5 +64,5 @@ class Owners(commands.Cog):
 # SETUP
 #
 
-def setup(bot):
-    bot.add_cog(Owners(bot))
+def setup(client):
+    client.add_cog(Owners(client))

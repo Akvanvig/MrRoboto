@@ -209,7 +209,7 @@ class MusicPlayer:
     __slots__ = ('client', '_guild', '_channel', '_cog', 'queue', 'next', 'current', 'np', 'volume')
 
     def __init__(self, ctx):
-        self.client = ctx.bot
+        self.client = ctx.client
         self._guild = ctx.guild
         self._channel = ctx.channel
         self._cog = ctx.cog
@@ -221,7 +221,7 @@ class MusicPlayer:
         self.volume = .5
         self.current = None
 
-        ctx.bot.loop.create_task(self.player_loop())
+        ctx.client.loop.create_task(self.player_loop())
 
     async def player_loop(self):
         """Our main player loop."""
@@ -273,11 +273,11 @@ class MusicPlayer:
 class Audio(commands.Cog):
     __slots__ = ('client', 'players')
 
-    def __init__(self, bot):
+    def __init__(self, client):
         audiofilesPath = './media/audio/'
         audioJsonPath = '{}audio.json'.format(configPath)
 
-        self.bot = bot
+        self.client = client
         self.players = {}
         self.songlist = SongList(audioJsonPath, audiofilesPath)
         self.audiofilesPath = audiofilesPath
@@ -368,7 +368,7 @@ class Audio(commands.Cog):
 
         # If download is False, source will be a dict which will be used later to regather the stream.
         # If download is True, source will be a discord.FFmpegPCMAudio with a VolumeTransformer.
-        source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop, download=False)
+        source = await YTDLSource.create_source(ctx, search, loop=self.client.loop, download=False)
 
         await player.queue.put(source)
 
@@ -388,7 +388,7 @@ class Audio(commands.Cog):
             path = self.audiofilesPath + aliasDict[query.lower()]
             print('Requested {}'.format(path))
 
-            source = await YTDLSource.create_source_local(ctx, path, query, loop=self.bot.loop)
+            source = await YTDLSource.create_source_local(ctx, path, query, loop=self.client.loop)
             await player.queue.put(source)
         else:
             await ctx.send('Could not find {}'.format(query))
@@ -517,5 +517,5 @@ class Audio(commands.Cog):
 # SETUP
 #
 
-def setup(bot):
-    bot.add_cog(Audio(bot))
+def setup(client):
+    client.add_cog(Audio(client))

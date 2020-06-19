@@ -39,10 +39,15 @@ class MrRoboto(commands.Bot):
             print(message.content)
         await client.process_commands(message)
 
+
     async def on_command_error(self, ctx, error):
         if error.__class__ is commands.MissingRequiredArgument:
-            await ctx.send(f'{error.__class__.__name__}: {error}')
-
+            await ctx.send('{}: {}'.format(error.__class__.__name__, error))
+        elif error.__class__ is commands.CommandNotFound:
+            await ctx.send('command \'{}\' not found'.format(ctx.invoked_with))
+        else:
+            print(error)
+            await ctx.send('command \'{}\' is not working properly, contact your local developer :)'.format(ctx.invoked_with))
 #
 # MAIN
 #

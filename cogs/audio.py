@@ -88,18 +88,18 @@ class SongList():
                 return False
         return False
 
-    def getStrListCategory(self, category):
+    def getListCategory(self, category):
         resultlist = []
         for song in self.songs:
             if song.name.startswith(category):
-                resultlist.append('{} - {}'.format(song.name, song.aliases))
+                resultlist.append(song)
         return resultlist
 
-    def getStrListNoCategory(self):
+    def getListNoCategory(self):
         resultlist = []
         for song in self.songs:
             if '/' not in song.name:
-                resultlist.append('{} - {}'.format(song.name, song.aliases))
+                resultlist.append(song)
         return resultlist
 
     def getStrListCategories(self):
@@ -515,7 +515,7 @@ class Audio(commands.Cog):
             return await ctx.send('I am not currently playing anything!', delete_after=20)
 
         await self.cleanup(ctx.guild)
-        
+
 
     @commands.command(name='categories', aliases=['cat', 'category'], description="Lists out all available categories (Not all songs a categorized)")
     async def categories(self, ctx):

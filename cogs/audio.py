@@ -185,6 +185,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         #Metadata for audiofile
         data = {'title':title}
         source = discord.FFmpegPCMAudio(path)
+
+        await ctx.send('```ini\n[Added {} to the Queue.]\n```'.format(data["title"]), delete_after=15)
         return cls(source, data=data, requester=ctx.author)
 
     @classmethod
@@ -513,6 +515,30 @@ class Audio(commands.Cog):
             return await ctx.send('I am not currently playing anything!', delete_after=20)
 
         await self.cleanup(ctx.guild)
+        
+
+    @commands.command(name='categories', aliases=['cat', 'category'], description="Lists out all available categories (Not all songs a categorized)")
+    async def categories(self, ctx):
+        categoryList = self.songlist.getStrListCategories()
+
+        fmt = '\n'.join('**{}**'.format(category) for category in categoryList)
+        embed = discord.Embed(title='Categories', description=fmt)
+
+        await ctx.send(embed=embed)
+
+
+    @commands.command(name='songs', aliases=['category-songs'], description="Lists out songs in a given category")
+    async def songs(self, ctx, category=None):
+        if category:
+            songs = self.songlist.getListCategory(category)
+        else:
+            songs = self.songlist.getListNoCategory()
+            category = "No Category"
+
+        fmt = '\n'.join('**{}** - {}'.format(song.name, song.aliases) for song in songs)
+        embed = discord.Embed(title='Songs {} - aliases'.format(category), description=fmt)
+
+        await ctx.send(embed=embed)
 
 #
 # SETUP

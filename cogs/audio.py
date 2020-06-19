@@ -1,10 +1,13 @@
 import youtube_dl
-import os, json, asyncio, itertools
+import os
+import asyncio
+import itertools
+import discord
+
+
 from async_timeout import timeout
 from functools import partial
-from functions import *
-
-import discord
+from common.jsonhelper import *
 from discord.ext import commands
 
 """
@@ -67,6 +70,7 @@ class SongList():
         for song in list2:
             if song not in resultlist:
                 print(song.getJson())
+                resultlist.append(song)
 
         print('Songlists have been merged')
         return resultlist
@@ -171,6 +175,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         else:
             return {'webpage_url': data['webpage_url'], 'requester': ctx.author, 'title': data['title']}
 
+        #Testing return cls(discord.FFmpegPCMAudio(source, options=ffmpeg_options, before_options=ffmpeg_before_options), data=data, requester=ctx.author)
         return cls(discord.FFmpegPCMAudio(source, options=ffmpeg_options, before_options=ffmpeg_before_options), data=data, requester=ctx.author)
 
 
@@ -268,10 +273,13 @@ class MusicPlayer:
         """Disconnect and cleanup the player."""
         return self.client.loop.create_task(self._cog.cleanup(guild))
 
-class Music(commands.Cog):
+class Audio(commands.Cog):
     __slots__ = ('client', 'players')
 
-    def __init__(self, client, audioJsonPath, audiofilesPath):
+    def __init__(self, client):
+        audiofilesPath = './media/audio/'
+        audioJsonPath = '{}audio.json'.format(configPath)
+
         self.client = client
         self.players = {}
         self.songlist = SongList(audioJsonPath, audiofilesPath)
@@ -508,6 +516,7 @@ class Music(commands.Cog):
 
         await self.cleanup(ctx.guild)
 
+
     @commands.command(name='categories', aliases=['cat', 'category'], description="Lists out all available categories (Not all songs a categorized)")
     async def categories(self, ctx):
         categoryList = self.songlist.getStrListCategories()
@@ -516,6 +525,7 @@ class Music(commands.Cog):
         embed = discord.Embed(title='Categories', description=fmt)
 
         await ctx.send(embed=embed)
+
 
     @commands.command(name='songs', aliases=['category-songs'], description="Lists out songs in a given category")
     async def songs(self, ctx, category=None):
@@ -529,3 +539,10 @@ class Music(commands.Cog):
         embed = discord.Embed(title='Songs {} - aliases'.format(category), description=fmt)
 
         await ctx.send(embed=embed)
+
+#
+# SETUP
+#
+
+def setup(client):
+    client.add_cog(Audio(client))

@@ -1,64 +1,62 @@
-#API-dokumentasjon:
-#https://discordpy.readthedocs.io/en/latest/api.html
-import discord
+"""
+Simple discord bot.
+Read: https://discordpy.readthedocs.io/en/latest/api.html
+"""
+
+__author__ = "Anders & Fredrico"
+
+import logging
+import config
+
 from discord.ext import commands
-import logging, os, json, asyncio, random
 
-from functions import *
-from audio import Music
-from animations import Animations
-from commands import Other
+logging.basicConfig(
+    level=logging.WARNING,
+    format="%(asctime)s: %(levelname)s: %(message)s"
+)
 
+initial_extensions  = ['cogs.animations',
+                       'cogs.audio',
+                       'cogs.commands',
+                       'cogs.owners']
 
-"""
-Standard variables
-"""
-audiofilesPath = './media/audio/'
-configPath = './config/'
-audioJsonPath = '{}audio.json'.format(configPath)
-configJsonPath = '{}config.json'.format(configPath)
-logger = logging.getLogger('discord')
-logger.setLevel(logging.INFO)
+#
+# CLASSES
+#
 
+class MrRoboto(commands.Bot):
+    async def on_ready(self):
+        print('Logged in as')
+        print(self.user.name)
+        print(self.user.id)
+        print('------')
 
-"""
-Loading config and creating example if missing
-"""
-createFolderIfNotExist(configPath)
-createFolderIfNotExist(audiofilesPath)
+    async def on_command(self, ctx):
+        logging.info(ctx.author.name+": "+ctx.message.content)
 
-if os.path.exists(configJsonPath):
-    conf = getJson(configJsonPath)
-    client = commands.Bot(command_prefix=conf['commandPrefix'], case_insensitive=True, owner_ids=conf['ownerIds'])
-else:
-    print('Missing config')
-    exampleConf = {'discordToken':'fdjkakjdfefehsabh93,.3mejnfe', 'commandPrefix':'?', 'ownerIds':[] , 'ytdlFormatOptions': {'format': 'bestaudio/best','outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s', 'restrictfilenames': True, 'noplaylist': True, 'nocheckcertificate': True, 'ignoreerrors': False, 'logtostderr': False, 'quiet': True, 'no_warnings': True, 'default_search': 'auto', 'source_address': '0.0.0.0',"HighWaterMark":3145728}, 'ffmpeg_options':{'options': '-vn'},"ffmpeg_before_options":{"reconnect": 1, "reconnect_streamed": 1, "reconnect_delay_max":5}}
-    saveJson(exampleConf, configJsonPath)
+    async def on_message(self, message):
+        if message.author != client.user:
+            print(message.content)
+        await client.process_commands(message)
 
 
-"""
-Other Events
-"""
-@client.event
-async def on_ready():
-    print('Logged in as')
-    print(client.user.name)
-    print(client.user.id)
-    print('------')
+    async def on_command_error(self, ctx, error):
+        if error.__class__ is commands.MissingRequiredArgument:
+            await ctx.send('{}: {}'.format(error.__class__.__name__, error))
+        elif error.__class__ is commands.CommandNotFound:
+            await ctx.send('command \'{}\' not found'.format(ctx.invoked_with))
+        else:
+            print(error)
+            await ctx.send('command \'{}\' is not working properly, contact your local developer :)'.format(ctx.invoked_with))
+#
+# MAIN
+#
 
-@client.event
-async def on_message(message):
-    if message.author != client.user:
-        print(message.content)
-    await client.process_commands(message)
+conf = config.getConf()
 
+client = MrRoboto(command_prefix = conf['commandPrefix'], case_insensitive = True, owner_ids = conf['ownerIds'])
 
+for extension in initial_extensions:
+    client.load_extension(extension)
 
-"""
-Starting bot
-"""
-if os.path.exists(configJsonPath):
-    client.add_cog(Music(client, audioJsonPath, audiofilesPath))
-    client.add_cog(Animations(client))
-    client.add_cog(Other(client))
-    client.run(conf['discordToken'])
+client.run(conf['discordToken'], bot=True, reconnect=True)

@@ -105,5 +105,6 @@ venv.bak/
 
 
 # Projectfiles
-config/
+audio.json
+config.json
 ffmpeg.exe

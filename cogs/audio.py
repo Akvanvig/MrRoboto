@@ -222,7 +222,7 @@ class MusicPlayer:
         self.volume = .5
         self.current = None
 
-        ctx.client.loop.create_task(self.player_loop())
+        ctx.bot.loop.create_task(self.player_loop())
 
     async def player_loop(self):
         """Our main player loop."""

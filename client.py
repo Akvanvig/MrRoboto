@@ -34,6 +34,11 @@ class MrRoboto(commands.Bot):
     async def on_command(self, ctx):
         logging.info(ctx.author.name+": "+ctx.message.content)
 
+    async def on_message(self, message):
+        if message.author != client.user:
+            print(message.content)
+        await client.process_commands(message)
+
     async def on_command_error(self, ctx, error):
         if error.__class__ is commands.MissingRequiredArgument:
             await ctx.send(f'{error.__class__.__name__}: {error}')

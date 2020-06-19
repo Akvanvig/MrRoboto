@@ -70,6 +70,7 @@ class SongList():
         for song in list2:
             if song not in resultlist:
                 print(song.getJson())
+                resultlist.append(song)
 
         print('Songlists have been merged')
         return resultlist

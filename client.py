@@ -52,7 +52,7 @@ class MrRoboto(commands.Bot):
 # MAIN
 #
 
-conf = config.getConf()
+conf = config.get()
 
 client = MrRoboto(command_prefix = conf['commandPrefix'], case_insensitive = True, owner_ids = conf['ownerIds'])
 

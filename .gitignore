@@ -35,6 +35,9 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Pipenv
+Pipfile.lock
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -105,6 +108,6 @@ venv.bak/
 
 
 # Projectfiles
-config/audio.json
-config/config.json
+config/*.json
 ffmpeg.exe
+ffmpeg

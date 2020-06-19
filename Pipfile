@@ -1,0 +1,17 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+"discord.py" = {extras = ["voice"], version = "*"}
+youtube-dl = "*"
+
+[requires]
+python_version = "3.8"
+
+[scripts]
+bot = "python3 client.py"
+dlreqs = "python3 dlreqs.py"

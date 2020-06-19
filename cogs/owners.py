@@ -32,7 +32,6 @@ class Owners(commands.Cog):
     # Unload module
     @commands.command(hidden=True)
     async def unload(self, ctx, *, module):
-        """Unloads a module."""
         try:
             self.client.unload_extension(module)
         except commands.ExtensionError as e:
@@ -53,7 +52,7 @@ class Owners(commands.Cog):
     # Refresh config
     @commands.command(hidden=True)
     async def refreshconf(self, ctx):
-        conf = config.getConf()
+        conf = config.get()
 
         self.client.command_prefix = conf['commandPrefix']
         self.client.owner_ids= conf['ownerIds']

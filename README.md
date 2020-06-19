@@ -1,17 +1,19 @@
 # Discord-bot-py
 
-## Installasjonskrav:  
+# Requirements:
 * Discord Auth-token
 
-## Installasjonsprosess:
-- Windows
-  1. Installer Python >= 3.5.3 på maskinen
-  2. Installer discord.py:
-    - python3 -m pip install -U discord.py[voice]
-  3. Installer youtubedl
-    - python3 -m pip install -U youtube_dl
-  4. Legg ffmpeg.exe i samme mappe som client
-- Linux
-  1. Installer discord.py:
-    - sudo apt install libffi-dev libnacl-dev python3-dev
-    - python3 -m pip install -U discord.py[voice]
+# Installation
+1. Install Python
+  - **Windows**: Install Python >= 3.8 on the machine
+  - **Linux**: sudo apt install libffi-dev libnacl-dev python3-dev
+2. Install pipenv
+  - python3 -m pip install -U pipenv
+3. Install requirements from pipfile
+  - **User**: python3 -m pipenv install
+  - **Dev**: python3 -m pipenv install --dev
+4. Grab latest ffmpeg
+  - python3 -m pipenv run dlreqs
+
+# Running the bot
+python3 -m pipenv run bot

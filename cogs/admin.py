@@ -16,7 +16,7 @@ class Admin(commands.Cog):
 
     @commands.command()
     async def clear(self, ctx):
-        history = ctx.channel.history(limit=10)
+        history = ctx.channel.history(limit=50)
         msgs = [message async for message in history if message.author == self.client.user]
         
         for message in msgs:

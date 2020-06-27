@@ -12,15 +12,15 @@ class Admin(commands.Cog):
 
     # Check if admin
     async def cog_check(self, ctx):
-        return commands.has_permissions(administrator=True)
-
-    @commands.command()
-    async def clear(self, ctx):
-        history = ctx.channel.history(limit=50)
-        msgs = [message async for message in history if message.author == self.client.user]
+        return ctx.channel.permissions_for(ctx.message.author).administrator
         
-        for message in msgs:
-            await message.delete()
+    @commands.command()
+    async def clear(self, ctx, *, lim=30):
+        if lim <= 0 or lim > 300:
+            await ctx.send("Choose a limit between 1 and 300")
+        else:
+            isCmdOrBot = lambda msg: True if msg.author == self.client.user or msg.content.startswith(self.client.command_prefix) else False
+            await ctx.channel.purge(limit=lim, check=isCmdOrBot, before=ctx.message, bulk=True)
 
 #
 # SETUP

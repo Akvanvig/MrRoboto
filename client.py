@@ -17,7 +17,8 @@ logging.basicConfig(
     format="%(asctime)s: %(levelname)s: %(message)s"
 )
 
-initial_extensions  = ['cogs.animations',
+initial_extensions  = ['cogs.admin',
+                       'cogs.animations',
                        'cogs.audio',
                        'cogs.commands',
                        'cogs.owners']

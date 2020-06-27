@@ -13,5 +13,5 @@ youtube-dl = "*"
 python_version = "3.8"
 
 [scripts]
-bot = "python3 client.py"
-dlreqs = "python3 dlreqs.py"
+bot = "python client.py"
+dlreqs = "python dlreqs.py"

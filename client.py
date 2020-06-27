@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """
 Simple discord bot.
 Read: https://discordpy.readthedocs.io/en/latest/api.html
@@ -36,7 +38,7 @@ class MrRoboto(commands.Bot):
 
     async def on_message(self, message):
         if message.author != client.user:
-            print(message.content)
+            print(message.author.name+": "+message.content)
         await client.process_commands(message)
 
 

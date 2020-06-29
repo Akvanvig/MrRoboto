@@ -20,15 +20,15 @@ class Admin(commands.Cog):
     async def cog_check(self, ctx):
         return ctx.channel.permissions_for(ctx.message.author).administrator
         
-    @commands.group(name = 'clear', invoke_without_command = True, description = "Clears all bot commands and messages in the channel, given a limit parameter. Default is 30.")
+    @commands.group(name = 'clear', invoke_without_command = True, help = "Clears all bot commands and messages in the channel, given a limit parameter. Default is 30.")
     async def _clear(self, ctx, *, lim=30):
         if lim <= 0 or lim > HISTORY_LIMIT:
             await ctx.send("Choose a limit between 1 and {}".format(HISTORY_LIMIT))
         else:
             botuser = self.client.user
-            prefix = self.client.command_prefix
+            prefixes = tuple(self.client.command_prefix)
 
-            isCmdOrBot = lambda msg: True if msg.author == botuser or msg.content.startswith(prefix) else False
+            isCmdOrBot = lambda msg: True if msg.author == botuser or msg.content.startswith(prefixes) else False
             
             await ctx.channel.purge(limit=lim, check=isCmdOrBot, before=ctx.message, bulk=True)
 

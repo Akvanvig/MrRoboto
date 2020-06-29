@@ -199,7 +199,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         to_run = partial(ytdl.extract_info, url=data['webpage_url'], download=False)
         data = await loop.run_in_executor(None, to_run)
 
-        return cls(discord.FFmpegPCMAudio(data['url']), data=data, requester=requester)
+        return cls(discord.FFmpegPCMAudio(data['url'], options=ffmpeg_options, before_options=ffmpeg_before_options), data=data, requester=requester)
 
 
 class MusicPlayer:
@@ -503,7 +503,7 @@ class Audio(commands.Cog):
         player.volume = vol / 100
         await ctx.send('**`{}`**: Set the volume to **{}%**'.format(ctx.author, vol))
 
-    @commands.command(name='stop')
+    @commands.command(name='stop', aliases=[disconnect, dc])
     async def stop(self, ctx):
         """Stop the currently playing song and destroy the player.
         !Warning!

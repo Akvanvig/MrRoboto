@@ -16,3 +16,6 @@ Update from git:
 
 Se nærmere på animasjoner:
     Finnes det en bedre måte å gjøre det på? Kanskje vurdere å flytte animasjon strings ut i egne filer.
+
+Actually log who's trying to trying to use admin/owner commands (sudo, reload, refresh etc.)
+    Also find a way to threaten users trying to use the commands :)

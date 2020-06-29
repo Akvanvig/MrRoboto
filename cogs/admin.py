@@ -19,7 +19,11 @@ class Admin(commands.Cog):
     # Check if admin
     async def cog_check(self, ctx):
         return ctx.channel.permissions_for(ctx.message.author).administrator
-        
+
+    @commands.command()
+    async def sudo(self, ctx):
+        await ctx.send("You are now running with sudo privileges")
+
     @commands.group(name = 'clear', invoke_without_command = True, help = "Clears all bot commands and messages in the channel, given a limit parameter. Default is 30.")
     async def _clear(self, ctx, *, lim=30):
         if lim <= 0 or lim > HISTORY_LIMIT:
@@ -29,7 +33,7 @@ class Admin(commands.Cog):
             prefixes = tuple(self.client.command_prefix)
 
             isCmdOrBot = lambda msg: True if msg.author == botuser or msg.content.startswith(prefixes) else False
-            
+
             await ctx.channel.purge(limit=lim, check=isCmdOrBot, before=ctx.message, bulk=True)
 
     @_clear.command(name = 'all', description = "Clears all chat messages in the channel, given a limit parameter. Default is 30.")

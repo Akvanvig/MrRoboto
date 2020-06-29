@@ -12,6 +12,10 @@ class Other(commands.Cog):
         self.client = client
 
     @commands.command()
+    async def sudo(self, ctx):
+        await ctx.send("You are now running with sudo privileges")
+
+    @commands.command()
     async def latency(self, ctx):
         await ctx.send("Bot latency is {:.2f} ms".format(self.client.latency))
 

@@ -50,9 +50,9 @@ class Owners(commands.Cog):
             await ctx.send('\N{OK HAND SIGN}')
 
     # Refresh config
-    @commands.command(hidden=True)
-    async def refreshconf(self, ctx):
-        conf = config.get()
+    @commands.command(name = 'refreshconf', hidden =True)
+    async def refresh_conf(self, ctx):
+        conf = config.get(force_read = True)
 
         self.client.command_prefix = conf['commandPrefix']
         self.client.owner_ids= conf['ownerIds']

@@ -60,11 +60,8 @@ class Admin(commands.Cog):
 
         mutetime = timehelper.str_to_delta("".join(time))
 
-        if mutetime == timehelper.DEFAULT_TIMEDELTA:
-            await ctx.send("Specify a valid mute time > 0")
-            return
-        elif mutetime >= MUTETIME_LIMIT:
-            await ctx.send("Specify a mute time below {}".format(str(MUTETIME_LIMIT)))
+        if mutetime <= timehelper.DEFAULT_TIMEDELTA or mutetime > MUTETIME_LIMIT:
+            await ctx.send("Specify a valid mute time between 0 and {}".format(str(MUTETIME_LIMIT)))
             return
 
         # Save current datetime + mutetime to json here

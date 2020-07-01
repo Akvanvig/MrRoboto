@@ -1,12 +1,15 @@
 import asyncio
 
 from discord.ext import commands
+from common import *
 
 #
 # CONSTANTS
 #
 
+MUTED_PATH = "./state/muted.json"
 HISTORY_LIMIT = 300
+MUTETIME_LIMIT = timehelper.args_to_delta(days = 1)
 
 #
 # CLASSES
@@ -16,7 +19,6 @@ class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
         # Remember to read and check mute list on init to avoid permanent mutes
-        
 
     # Check if admin
     async def cog_check(self, ctx):
@@ -29,7 +31,7 @@ class Admin(commands.Cog):
 
     # Clear channel messages for bot and command messages
     @commands.group(name = 'clear', invoke_without_command = True, help = "Clears all bot commands and messages in the channel, given a limit parameter. Default is 30.")
-    async def _clear(self, ctx, *, lim=30):
+    async def _clear(self, ctx, lim = 30):
         if lim <= 0 or lim > HISTORY_LIMIT:
             await ctx.send("Choose a limit between 1 and {}".format(HISTORY_LIMIT))
         else:
@@ -42,15 +44,32 @@ class Admin(commands.Cog):
 
     # Clear ALL channel messages
     @_clear.command(name = 'all', description = "Clears all chat messages in the channel, given a limit parameter. Default is 30.")
-    async def _clear_all(self, ctx, *, lim=30):
+    async def _clear_all(self, ctx, lim = 30):
         if lim <= 0 or lim > HISTORY_LIMIT:
             await ctx.send("Choose a limit between 1 and {}".format(HISTORY_LIMIT))
         else:
             await ctx.channel.purge(limit=lim, before=ctx.message, bulk=True)
 
     @commands.command(name = 'tempmute')
-    async def temp_mute(self, ctx):
-        pass
+    async def temp_mute(self, ctx, name, *time):
+        member = ctx.guild.get_member_named(name)
+
+        if member == None:
+            await ctx.send("Could not find any user named {}".format(name))
+            return
+
+        mutetime = timehelper.str_to_delta("".join(time))
+
+        if mutetime == timehelper.DEFAULT_TIMEDELTA:
+            await ctx.send("Specify a valid mute time > 0")
+            return
+        elif mutetime >= MUTETIME_LIMIT:
+            await ctx.send("Specify a mute time below {}".format(str(MUTETIME_LIMIT)))
+            return
+
+        # Save current datetime + mutetime to json here
+        # asyncio sleep
+        # call unmute on user
 
 #
 # SETUP
@@ -58,3 +77,4 @@ class Admin(commands.Cog):
 
 def setup(client):
     client.add_cog(Admin(client))
+

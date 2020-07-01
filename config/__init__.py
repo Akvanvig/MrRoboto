@@ -4,7 +4,7 @@ Setup config
 
 import logging
 
-from common.jsonhelper import *
+from common.jsonhelper import getJson, saveJson
 
 logging.basicConfig(
     level=logging.WARNING,

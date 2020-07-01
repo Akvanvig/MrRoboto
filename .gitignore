@@ -109,5 +109,6 @@ venv.bak/
 
 # Projectfiles
 config/*.json
+state
 ffmpeg.exe
 ffmpeg

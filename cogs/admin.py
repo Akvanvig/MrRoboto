@@ -97,11 +97,21 @@ class Admin(commands.Cog):
 
     @commands.command()
     async def mute(self, ctx, name, *time):
-        member = ctx.guild.get_member_named(name)
+        member = None
 
-        if member == None:
-            await ctx.send("Could not find any user named {}".format(name))
+        if len(ctx.message.mentions) > 1:
+            await ctx.send("Only supply 1 user as a parameter")
             return
+
+        elif len(ctx.message.mentions) == 1:
+            member = ctx.message.mentions[0]
+
+        else:
+            member = ctx.guild.get_member_named(name)
+
+            if member == None:
+                await ctx.send("Could not find any user named {}".format(name))
+                return
 
         mutetime = timehelper.str_to_delta("".join(time))
 

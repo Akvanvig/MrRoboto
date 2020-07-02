@@ -5,6 +5,8 @@ Time regular expression taken from https://stackoverflow.com/questions/3096860/c
 import datetime
 import re
 
+# PRIVATE
+
 _DATEFORMAT = '%Y-%m-%d %H:%M:%S'
 _UNITS = {'s':'seconds', 
          'm':'minutes', 
@@ -12,15 +14,17 @@ _UNITS = {'s':'seconds',
          'd':'days', 
          'w':'weeks'}
 
+# PUBLIC
+
 DEFAULT_TIMEDELTA = datetime.timedelta()
 
-def get_date_now() -> datetime.datetime:
+def get_current_date() -> datetime.datetime:
     return datetime.datetime.now()
 
 def date_to_str(time : datetime.datetime) -> str:
     return time.strftime(_DATEFORMAT)
 
-def str_to_date(s : str):
+def str_to_date(s : str) -> datetime.datetime:
     return datetime.datetime.strptime(s, _DATEFORMAT)
 
 def args_to_delta(**args) -> datetime.timedelta:

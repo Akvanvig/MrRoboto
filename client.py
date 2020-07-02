@@ -7,10 +7,12 @@ Read: https://discordpy.readthedocs.io/en/latest/api.html
 
 __author__ = "Anders & Fredrico"
 
+import os
 import logging
 import config
 
 from discord.ext import commands
+from cogs.admin import Admin
 
 logging.basicConfig(
     level=logging.WARNING,
@@ -33,6 +35,10 @@ class MrRoboto(commands.Bot):
         print(self.user.name)
         print(self.user.id)
         print('------')
+
+        # We need to call admin_ready after running the bot, or else
+        # there is no connectivity to grab guild/member objects
+        await Admin.ready(self)
 
     async def on_command(self, ctx):
         logging.info(ctx.author.name+": "+ctx.message.content)
@@ -58,6 +64,9 @@ class MrRoboto(commands.Bot):
 #
 
 conf = config.get()
+
+if not os.path.exists('state'):
+    os.makedirs('state')
 
 client = MrRoboto(command_prefix = conf['commandPrefix'], case_insensitive = True, owner_ids = conf['ownerIds'])
 

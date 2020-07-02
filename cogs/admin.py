@@ -1,3 +1,4 @@
+import os
 import asyncio
 
 from discord.ext import commands
@@ -18,7 +19,51 @@ MUTETIME_LIMIT = timehelper.args_to_delta(days = 1)
 class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
-        # Remember to read and check mute list on init to avoid permanent mutes
+
+    # Check mute list if we're booting up
+    # to avoid permanent mutes
+    @staticmethod
+    async def ready(client):
+        if not os.path.isfile(MUTED_PATH):
+            jsonhelper.saveJson({}, MUTED_PATH)
+            return
+
+        currentdate = timehelper.get_current_date()
+        json = jsonhelper.getJson(MUTED_PATH)
+        
+        members_to_unmute = []
+
+        for guild_id, members in json.items():
+            guild = client.get_guild(int(guild_id))
+
+            for member_id, date in members.items():
+                member = guild.get_member(int(member_id))
+                mutedate = timehelper.str_to_date(date)
+
+                if currentdate >= mutedate:
+                    members_to_unmute.append(member)
+                else:
+                    unmuteseconds = (mutedate - currentdate).total_seconds()
+                    asyncio.create_task(asynchelper.run_coro_in(Admin._unmute(member), unmuteseconds))
+
+        if len(members_to_unmute) > 0:
+            await Admin._unmute(*members_to_unmute)
+
+    # Unmute member(s) and remove them from the json list
+    @staticmethod
+    async def _unmute(*members):
+        json = jsonhelper.getJson(MUTED_PATH)
+        
+        try:
+            for member in members:
+                del json[str(member.guild.id)][str(member.id)]
+        except KeyError as e:
+            pass # Do nothing
+
+        jsonhelper.saveJson(json, MUTED_PATH)
+        
+        for member in members:
+            await member.edit(mute = False)
 
     # Check if admin
     async def cog_check(self, ctx):
@@ -50,8 +95,8 @@ class Admin(commands.Cog):
         else:
             await ctx.channel.purge(limit=lim, before=ctx.message, bulk=True)
 
-    @commands.command(name = 'tempmute')
-    async def temp_mute(self, ctx, name, *time):
+    @commands.command()
+    async def mute(self, ctx, name, *time):
         member = ctx.guild.get_member_named(name)
 
         if member == None:
@@ -64,9 +109,15 @@ class Admin(commands.Cog):
             await ctx.send("Specify a valid mute time between 0 and {}".format(str(MUTETIME_LIMIT)))
             return
 
-        # Save current datetime + mutetime to json here
-        # asyncio sleep
-        # call unmute on user
+        unmutedate = timehelper.date_to_str(timehelper.get_current_date() + mutetime)
+
+        json = jsonhelper.getJson(MUTED_PATH)
+        json.setdefault(str(ctx.guild.id), {})[str(member.id)] = unmutedate
+        jsonhelper.saveJson(json, MUTED_PATH)
+
+        await member.edit(mute = True)
+        await asyncio.sleep(mutetime.total_seconds())
+        await Admin._unmute(member)
 
 #
 # SETUP

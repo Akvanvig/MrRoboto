@@ -54,11 +54,11 @@ class Admin(commands.Cog):
     async def _unmute(*members):
         json = jsonhelper.getJson(MUTED_PATH)
         
-        try:
-            for member in members:
+        for member in members:
+            try:
                 del json[str(member.guild.id)][str(member.id)]
-        except KeyError as e:
-            pass # Do nothing
+            except KeyError as e:
+                pass # Do nothing
 
         jsonhelper.saveJson(json, MUTED_PATH)
         

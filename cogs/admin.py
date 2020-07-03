@@ -1,6 +1,7 @@
 import os
 import asyncio
 
+from discord import utils
 from discord.ext import commands
 from common import *
 
@@ -9,8 +10,9 @@ from common import *
 #
 
 MUTED_PATH = "./state/muted.json"
-HISTORY_LIMIT = 300
+MUTED_ROLE = "muted"
 MUTETIME_LIMIT = timehelper.args_to_delta(days = 1)
+HISTORY_LIMIT = 300
 
 #
 # CLASSES
@@ -45,9 +47,9 @@ class Admin(commands.Cog):
                 # Unmute later
                 else:
                     unmuteseconds = (unmutedate - currentdate).total_seconds()
-                    asyncio.create_task(asynchelper.run_coro_in(Admin._unmute(member), unmuteseconds))
+                    asyncio.create_task(asynchelper.run_coro_in(self.unmute(member), unmuteseconds))
 
-        if len(members_to_unmute) > 0: await Admin._unmute(*members_to_unmute)
+        if len(members_to_unmute) > 0: await self.unmute(*members_to_unmute)
 
     # Check if admin
     async def cog_check(self, ctx):
@@ -85,8 +87,7 @@ class Admin(commands.Cog):
             await ctx.channel.purge(limit=lim, before=ctx.message, bulk=True)
 
     # Unmute member(s) and remove them from the json list
-    @staticmethod
-    async def _unmute(*members):
+    async def unmute(self, *members):
         json = jsonhelper.getJson(MUTED_PATH)
         
         for member in members:
@@ -97,7 +98,7 @@ class Admin(commands.Cog):
 
         jsonhelper.saveJson(json, MUTED_PATH)
         
-        for member in members: await member.edit(mute = False)
+        for member in members: await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
 
     # Mute member for a given period of time
     @commands.command()
@@ -127,9 +128,9 @@ class Admin(commands.Cog):
         json.setdefault(str(ctx.guild.id), {})[str(member.id)] = unmutedate
         jsonhelper.saveJson(json, MUTED_PATH)
 
-        await member.edit(mute = True)
+        await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
         await asyncio.sleep(mutetime.total_seconds())
-        await Admin._unmute(member)
+        await self.unmute(member)
 
 #
 # SETUP

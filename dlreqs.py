@@ -27,13 +27,11 @@ try:
 
         with ZipFile(BytesIO(content), mode = 'r') as zipObj:
             for zip_info in zipObj.infolist():
-                if zip_info.filename[-1] == '/':
-                    continue
+                if zip_info.filename[-1] == '/': continue
                 
                 basename = os.path.basename(zip_info.filename)
 
-                if not basename == "ffmpeg.exe":
-                    continue
+                if not basename == "ffmpeg.exe": continue
                 
                 zip_info.filename = basename
                 zipObj.extract(zip_info)
@@ -48,13 +46,11 @@ try:
 
         with tarfile.open(fileobj = BytesIO(content), mode='r:xz' ) as tarObj:
             for tar_info in tarObj.getmembers():
-                if tar_info.name[-1] == '/':
-                    continue
+                if tar_info.name[-1] == '/': continue
                 
                 basename = os.path.basename(tar_info.name)
 
-                if not basename == "ffmpeg":
-                    continue
+                if not basename == "ffmpeg": continue
                 
                 tar_info.name = basename
                 tarObj.extract(tar_info)

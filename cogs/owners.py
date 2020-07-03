@@ -50,7 +50,9 @@ class Owners(commands.Cog):
             await ctx.send('\N{OK HAND SIGN}')
 
     # Refresh config
-    @commands.command(name = 'refreshconf', hidden =True)
+    @commands.command(
+        name = 'refreshconf', 
+        hidden = True)
     async def refresh_conf(self, ctx):
         conf = config.get(force_read = True)
 

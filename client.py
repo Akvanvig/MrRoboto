@@ -36,10 +36,6 @@ class MrRoboto(commands.Bot):
         print(self.user.id)
         print('------')
 
-        # We need to call admin_ready after running the bot, or else
-        # there is no connectivity to grab guild/member objects
-        await Admin.ready(self)
-
     async def on_command(self, ctx):
         logging.info(ctx.author.name+": "+ctx.message.content)
 

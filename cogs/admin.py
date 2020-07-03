@@ -98,7 +98,10 @@ class Admin(commands.Cog):
 
         jsonhelper.saveJson(json, MUTED_PATH)
         
-        for member in members: await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+        for member in members: 
+            await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+            await member.move_to(channel = None)
+            await self.client.send_message(member, "You've now been unmuted in {}, rejoin to be able to speak again.".format(member.guild))
 
     # Mute member for a given period of time
     @commands.command()
@@ -129,6 +132,9 @@ class Admin(commands.Cog):
         jsonhelper.saveJson(json, MUTED_PATH)
 
         await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+        await member.move_to(channel = None)
+        await self.client.send_message(member, "You've been muted until {}".format(unmutedate))
+        
         await asyncio.sleep(mutetime.total_seconds())
         await self.unmute(member)
 

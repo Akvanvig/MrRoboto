@@ -100,7 +100,7 @@ class Admin(commands.Cog):
         
         for member in members: 
             await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
-            await member.move_to(channel = None)
+            if member.voice: await member.move_to(channel = member.voice.channel)
             
             dm = await member.create_dm()
             await dm.send("You've now been unmuted in {}, rejoin to be able to speak again.".format(member.guild))
@@ -134,7 +134,7 @@ class Admin(commands.Cog):
         jsonhelper.saveJson(json, MUTED_PATH)
 
         await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
-        await member.move_to(channel = None)
+        if member.voice: await member.move_to(channel = member.voice.channel)
         
         dm = await member.create_dm()
         await dm.send("You've been muted until {} in {}".format(unmutedate, ctx.guild))

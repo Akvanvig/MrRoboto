@@ -32,8 +32,9 @@ class Other(commands.Cog):
         print('invoked')
         users = [
             {"title":"**Lead Project Manager** & **Chief Systems Architect**", "name":"**Adis Pinjic**"},
-            {"title":"**Cheif Orkitect** & **Grand Master of the Memologists**", "name":"**Eirik 'El Lolando' Andersen**"},
+            {"title":"**Chief Orkitect** & **Grand Master of the Memologists**", "name":"**Eirik 'El Lolando' Andersen**"},
             {"title":"**Chancellor of the Code** & **President of Marketing**", "name":"**Andreas 'Esteban' Hennestad**"},
+            {"title":"**Head Officer of Security** & **Drug Dealer**", "name":"**Mikkel '天皇' Thoresen**"},
             {"title":"code-monkeys", "name":"Anders & Fredrico"}
         ]
         lenTitle = len(max([i['title'] for i in users], key=len))

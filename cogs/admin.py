@@ -47,9 +47,9 @@ class Admin(commands.Cog):
                 # Unmute later
                 else:
                     unmuteseconds = (unmutedate - currentdate).total_seconds()
-                    asyncio.create_task(asynchelper.run_coro_in(self.unmute(member), unmuteseconds))
+                    asyncio.create_task(asynchelper.run_coro_in(self._unmute(member), unmuteseconds))
 
-        if len(members_to_unmute) > 0: await self.unmute(*members_to_unmute)
+        if len(members_to_unmute) > 0: await self._unmute(*members_to_unmute)
 
     # Check if admin
     async def cog_check(self, ctx):
@@ -87,7 +87,7 @@ class Admin(commands.Cog):
             await ctx.channel.purge(limit=lim, before=ctx.message, bulk=True)
 
     # Unmute member(s) and remove them from the json list
-    async def unmute(self, *members):
+    async def _unmute(self, *members):
         json = jsonhelper.getJson(MUTED_PATH)
         
         for member in members:
@@ -101,13 +101,9 @@ class Admin(commands.Cog):
         for member in members: 
             await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
             if member.voice: await member.move_to(channel = member.voice.channel)
-            
-            dm = await member.create_dm()
-            await dm.send("You've now been unmuted in {}, rejoin to be able to speak again.".format(member.guild))
 
     # Mute member for a given period of time
     @commands.command()
-    @commands.guild_only()
     async def mute(self, ctx, name, *time):
         member = None
 
@@ -117,7 +113,7 @@ class Admin(commands.Cog):
 
         member = ctx.message.mentions[0] if len(ctx.message.mentions) == 1 else ctx.guild.get_member_named(name)
 
-        if member == None:
+        if member is None:
             await ctx.send("Could not find any user named {}".format(name))
             return
 
@@ -137,10 +133,9 @@ class Admin(commands.Cog):
         if member.voice: await member.move_to(channel = member.voice.channel)
         
         dm = await member.create_dm()
-        await dm.send("You've been muted until {} in {}".format(unmutedate, ctx.guild))
+        await dm.send("You've been muted in {} until {}".format(ctx.guild, unmutedate))
         
-        await asyncio.sleep(mutetime.total_seconds())
-        await self.unmute(member)
+        await asynchelper.run_coro_in(self._unmute(member), mutetime.total_seconds())
 
 #
 # SETUP

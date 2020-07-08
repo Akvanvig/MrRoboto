@@ -19,3 +19,6 @@ Se nærmere på animasjoner:
 
 Actually log who's trying to trying to use admin/owner commands (sudo, reload, refresh etc.)
     Also find a way to threaten users trying to use the commands :)
+
+Integrate bring/postnord api to bot
+    - Idea by Anders

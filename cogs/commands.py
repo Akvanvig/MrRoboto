@@ -27,6 +27,7 @@ class Other(commands.Cog):
 
     @commands.command()
     @commands.cooldown(
+        rate = 1,
         per = 30.0,
         type = commands.BucketType.member)
     async def kys(self, ctx):

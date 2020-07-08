@@ -46,12 +46,24 @@ class MrRoboto(commands.Bot):
 
 
     async def on_command_error(self, ctx, error):
-        if error.__class__ is commands.MissingRequiredArgument:
+        # Return if handled by local error handler
+        if hasattr(ctx.command, "on_error"): return
+        # Else
+        if isinstance(error, commands.CommandInvokeError):
+            error = error.original
+
+        if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("{}: {}".format(error.__class__.__name__, error))
-        elif error.__class__ is commands.CommandNotFound:
+        
+        elif isinstance(error, commands.CommandNotFound):
             await ctx.send("Command \'{}\' not found".format(ctx.invoked_with))
-        elif error.__class__ is commands.errors.CheckFailure:
+
+        elif isinstance(error, commands.errors.CheckFailure):
             await ctx.send("{} is not allowed to run {} in {}. This incident will be reported".format(ctx.message.author, ctx.invoked_with, ctx.message.channel))
+
+        elif isinstance(error, commands.errors.CommandOnCooldown):
+            await ctx.send("Command \'{}\' is on cooldown for {:.2f} seconds".format(ctx.invoked_with, error.retry_after))
+
         else:
             print(error.__class__)
             await ctx.send("Command \'{}\' is not working properly, contact your local developer :)".format(ctx.invoked_with))

@@ -22,3 +22,7 @@ Actually log who's trying to trying to use admin/owner commands (sudo, reload, r
 
 Integrate bring/postnord api to bot
     - Idea by Anders
+    
+Create Container deployment config files for Kubernetes
+
+Create ticketing system for bot

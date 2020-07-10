@@ -1,5 +1,9 @@
 import json
 
+#
+# PUBLIC INTERFACE
+#
+
 def saveJson(obj, path):
     file = open(path, 'w')
     json.dump(obj, file, indent=4)

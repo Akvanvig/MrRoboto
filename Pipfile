@@ -8,6 +8,9 @@ verify_ssl = true
 [packages]
 "discord.py" = {extras = ["voice"], version = "*"}
 youtube-dl = "*"
+aiopg = "*"
+sqlalchemy = "*"
+psycopg2 = "*"
 
 [requires]
 python_version = "3.8"

@@ -11,7 +11,7 @@ from common import *
 
 MUTED_PATH = "./state/muted.json"
 MUTED_ROLE = "muted"
-MUTETIME_LIMIT = timehelper.args_to_delta(days = 1)
+MUTETIME_LIMIT = time_h.args_to_delta(days = 1)
 HISTORY_LIMIT = 300
 
 #
@@ -26,11 +26,11 @@ class Admin(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not os.path.isfile(MUTED_PATH):
-            jsonhelper.saveJson({}, MUTED_PATH)
+            json_h.saveJson({}, MUTED_PATH)
             return
 
-        currentdate = timehelper.get_current_date()
-        json = jsonhelper.getJson(MUTED_PATH)
+        currentdate = time_h.get_current_date()
+        json = json_h.getJson(MUTED_PATH)
         
         members_to_unmute = []
 
@@ -39,7 +39,7 @@ class Admin(commands.Cog):
 
             for member_id, date_str in members.items():
                 member = guild.get_member(int(member_id))
-                unmutedate = timehelper.str_to_date(date_str)
+                unmutedate = time_h.str_to_date(date_str)
 
                 # Unmute immediately (group calls together)
                 if currentdate >= unmutedate:
@@ -47,7 +47,7 @@ class Admin(commands.Cog):
                 # Unmute later
                 else:
                     unmuteseconds = (unmutedate - currentdate).total_seconds()
-                    asyncio.create_task(asynchelper.run_coro_in(self._unmute(member), unmuteseconds))
+                    asyncio.create_task(async_h.run_coro_in(self._unmute(member), unmuteseconds))
 
         if len(members_to_unmute) > 0: await self._unmute(*members_to_unmute)
 
@@ -88,7 +88,7 @@ class Admin(commands.Cog):
 
     # Unmute member(s) and remove them from the json list
     async def _unmute(self, *members):
-        json = jsonhelper.getJson(MUTED_PATH)
+        json = json_h.getJson(MUTED_PATH)
         
         for member in members:
             try:
@@ -96,7 +96,7 @@ class Admin(commands.Cog):
             except KeyError as e:
                 pass # Do nothing
 
-        jsonhelper.saveJson(json, MUTED_PATH)
+        json_h.saveJson(json, MUTED_PATH)
         
         for member in members: 
             await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
@@ -117,17 +117,17 @@ class Admin(commands.Cog):
             await ctx.send("Could not find any user named {}".format(name))
             return
 
-        mutetime = timehelper.str_to_delta("".join(time))
+        mutetime = time_h.str_to_delta("".join(time))
 
-        if mutetime <= timehelper.DEFAULT_TIMEDELTA or mutetime > MUTETIME_LIMIT:
+        if mutetime <= time_h.DEFAULT_TIMEDELTA or mutetime > MUTETIME_LIMIT:
             await ctx.send("Specify a valid mute time between 0 and {}".format(str(MUTETIME_LIMIT)))
             return
 
-        unmutedate = timehelper.date_to_str(timehelper.get_current_date() + mutetime)
+        unmutedate = time_h.date_to_str(time_h.get_current_date() + mutetime)
 
-        json = jsonhelper.getJson(MUTED_PATH)
+        json = json_h.getJson(MUTED_PATH)
         json.setdefault(str(ctx.guild.id), {})[str(member.id)] = unmutedate
-        jsonhelper.saveJson(json, MUTED_PATH)
+        json_h.saveJson(json, MUTED_PATH)
 
         await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
         if member.voice: await member.move_to(channel = member.voice.channel)
@@ -135,7 +135,7 @@ class Admin(commands.Cog):
         dm = await member.create_dm()
         await dm.send("You've been muted in {} until {}".format(ctx.guild, unmutedate))
         
-        await asynchelper.run_coro_in(self._unmute(member), mutetime.total_seconds())
+        await async_h.run_coro_in(self._unmute(member), mutetime.total_seconds())
 
 #
 # SETUP

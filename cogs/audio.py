@@ -7,7 +7,7 @@ import discord
 
 from async_timeout import timeout
 from functools import partial
-from common.jsonhelper import *
+from common.syncfunc.json_h import *
 from discord.ext import commands
 
 """

@@ -5,7 +5,9 @@ Time regular expression taken from https://stackoverflow.com/questions/3096860/c
 import datetime
 import re
 
-# PRIVATE
+#
+# PRIVATE INTERFACE
+#
 
 _DATEFORMAT = '%Y-%m-%d %H:%M:%S'
 _UNITS = {'s':'seconds', 
@@ -13,8 +15,11 @@ _UNITS = {'s':'seconds',
          'h':'hours', 
          'd':'days', 
          'w':'weeks'}
+_REGCOMPILED = re.compile(r"(?P<val>\d+)(?P<unit>[smhdw]?)", flags=re.I)
 
-# PUBLIC
+#
+#  PUBLIC INTERFACE
+#
 
 DEFAULT_TIMEDELTA = datetime.timedelta()
 
@@ -31,4 +36,4 @@ def args_to_delta(**args) -> datetime.timedelta:
     return datetime.timedelta(**args)
 
 def str_to_delta(s : str) -> datetime.timedelta:
-    return datetime.timedelta(**{_UNITS.get(m.group('unit').lower(), 'seconds'): int(m.group('val')) for m in re.finditer(r'(?P<val>\d+)(?P<unit>[smhdw]?)', s, flags=re.I)})
+    return datetime.timedelta(**{_UNITS.get(m.group('unit').lower(), 'seconds'): int(m.group('val')) for m in _REGCOMPILED.finditer(s)})

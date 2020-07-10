@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 """
 Simple discord bot.
 Read: https://discordpy.readthedocs.io/en/latest/api.html
@@ -8,18 +7,19 @@ Read: https://discordpy.readthedocs.io/en/latest/api.html
 __author__ = "Anders & Fredrico"
 
 import os
+import sys
 import logging
 import config
+import asyncio
 
 from discord.ext import commands
-from cogs.admin import Admin
 
 logging.basicConfig(
     level=logging.WARNING,
     format="%(asctime)s: %(levelname)s: %(message)s"
 )
 
-initial_extensions  = ['cogs.admin',
+INITIAL_EXTENSIONS  = ['cogs.admin',
                        'cogs.animations',
                        'cogs.audio',
                        'cogs.commands',
@@ -73,12 +73,16 @@ class MrRoboto(commands.Bot):
 
 conf = config.get()
 
+# Win32 compatibility for aiopg
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 if not os.path.exists('state'):
     os.makedirs('state')
 
 client = MrRoboto(command_prefix = conf['commandPrefix'], case_insensitive = True, owner_ids = conf['ownerIds'])
 
-for extension in initial_extensions:
+for extension in INITIAL_EXTENSIONS:
     client.load_extension(extension)
 
 client.run(conf['discordToken'], bot=True, reconnect=True)

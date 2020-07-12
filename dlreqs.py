@@ -60,7 +60,7 @@ try:
         content = None
         
         if system_machine == 'x86_64': content = download("https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz", headers)
-        elif system_machine == 'armv8': content = download("https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-arm64-static.tar.xz", headers)
+        elif system_machine == 'aarch64': content = download("https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-arm64-static.tar.xz", headers)
         else: raise CompatError()
 
         print("Succeeded, now unzipping the tar archive")

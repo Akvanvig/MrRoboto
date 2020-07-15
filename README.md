@@ -3,7 +3,11 @@
 ## Requirements:
 * Discord Auth-token
 
-## Installation:
+## Kubernetes:
+
+## Local:
+
+### Installation:
 1. Install Python
   - **Windows**: Install Python >= 3.8 on the machine
   - **Linux**: sudo apt install libffi-dev libnacl-dev libpq-dev python3-dev
@@ -15,5 +19,5 @@
 4. Grab latest ffmpeg
   - python3 -m pipenv run dlreqs
 
-## Running the bot:
+### Running the bot:
 python3 -m pipenv run bot

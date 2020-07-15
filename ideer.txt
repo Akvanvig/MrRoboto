@@ -1,4 +1,6 @@
 
+TODO(Fredrico): Move over to issues
+
 Temp mute funksjon for admin
     Muter en person i et gitt antall minutter, kan bare utføres av admins
 

@@ -17,4 +17,3 @@ python_version = "3.8"
 
 [scripts]
 bot = "python client.py"
-dlreqs = "python dlreqs.py"

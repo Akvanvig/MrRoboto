@@ -3,6 +3,8 @@
 Retrieves the latest ffmpeg package.
 """
 
+# TODO(Fredrico): Fix local installation
+
 import platform
 import os
 

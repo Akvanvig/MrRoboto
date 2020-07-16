@@ -10,7 +10,7 @@ RUN apt update -y \
 RUN python3 -m pip install discord.py[voice] youtube-dl aiopg sqlalchemy psycopg2
 
 WORKDIR /Discord-bot-py
-COPY . .
+COPY /bot .
 
 #RUN pipenv install
 #RUN pipenv run bot

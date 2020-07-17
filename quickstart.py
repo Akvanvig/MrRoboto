@@ -1,12 +1,16 @@
 #!/usr/bin/python3
 
 import os
+import sys
 import platform
 import json
+import subprocess
 
 #
 # CONSTANTS
 #
+
+FILE_DIR = os.path.dirname(__file__)
 
 EXAMPLE_SECRETS = {
     'discordToken': 'fdjkakjdfefehsabh93,.3mejnfe',
@@ -66,7 +70,13 @@ def input_yn(string : str) -> bool:
         elif answer in ('n', 'no'): return False
         else: print("Error, enter a valid input")
 
-def dl_requirements_windows():
+def install_requirements_pip():
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", os.path.join(FILE_DIR, "bot/requirements.txt")])
+    except subprocess.CalledProcessError:
+        raise ReqError()
+
+def install_requirements_windows():
     from urllib.request import urlopen, Request
     from urllib.error import URLError
     from http.client import IncompleteRead
@@ -74,6 +84,8 @@ def dl_requirements_windows():
     from zipfile import ZipFile
 
     url_file = None
+
+    # Download and install ffmpeg
 
     try:
         with urlopen(Request(
@@ -92,14 +104,28 @@ def dl_requirements_windows():
 
             if not basename == 'ffmpeg.exe': continue
             
-            zip_info.filename = os.path.join("./bot", basename)
+            zip_info.filename = os.path.join("bot", basename)
             zipObj.extract(zip_info)
             break
+
+    # Download and install pip requirements
+
+    install_requirements_pip()
     
-def dl_requirements_linux():
+def install_requirements_linux():
     # For now let's assume the distro is debian
     # or else we have to install another pip package to detect the distro
-    pass
+
+    # Download and install apt packages
+
+    try:
+        pass
+    except subprocess.CalledProcessError:
+        raise ReqError()
+
+    # Download and install pip requirements
+
+    install_requirements_pip()
 
 def gen_configs(path : str):    
     if not os.path.exists(path):
@@ -118,24 +144,20 @@ def local(install : bool, generate : bool):
         system_name = platform.system()
 
         try:
-            if system_name == 'Windows':
-                dl_requirements_windows()
-            elif system_name == 'Linux':
-                dl_requirements_linux()
-            else:
-                raise CompatError()
-
+            if system_name == 'Windows': install_requirements_windows()
+            elif system_name == 'Linux': install_requirements_linux()
+            else: raise CompatError()
         except CompatError:
             print("Error, you are not on a supported system")
         except ReqError:
             print("Error, failed to download a requirement")
 
     if generate: 
-        gen_configs("./bot/config")
+        gen_configs(os.path.join(FILE_DIR, "bot/config/"))
 
 def kubernetes(install : bool, generate : bool):
     if generate: 
-        gen_configs("./config")
+        gen_configs(os.path.join(FILE_DIR,"config/"))
 
 #
 # MAIN
@@ -145,7 +167,8 @@ def main():
     print("Welcome to discord-bot quickstart\n")
 
     # Ask for type
-    # Ask if you want to do a full install, or just a regen of the config
+    # Ask if user wants to install requirements
+    # Ask if user wants to generate example configs
     use_type = input_yn("Type (Y)es if you are using the bot locally, or (N)o if you are using kubernetes")
     reqs = input_yn("Do you want to install all requirements?")
     configs = input_yn("Do you want to generate example config files?")

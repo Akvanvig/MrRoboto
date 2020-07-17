@@ -1,1 +1,1 @@
-__all__ = ('json_h', 'time_h')
+__all__ = ('config_h', 'json_h', 'time_h')

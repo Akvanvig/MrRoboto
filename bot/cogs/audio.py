@@ -14,7 +14,7 @@ from discord.ext import commands
 Variables
 """
 configPath = './config/'
-configJsonPath = '{}config.json'.format(configPath)
+configJsonPath = '{}bot.json'.format(configPath)
 conf = getJson(configJsonPath)
 ffmpeg_options = conf['ffmpeg_options']
 ffmpeg_before_options = conf['ffmpeg_before_options']

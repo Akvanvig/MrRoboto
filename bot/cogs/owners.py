@@ -3,9 +3,8 @@
 Much of the code is taken from: https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
 """
 
-import config
-
 from discord.ext import commands
+from common.syncfunc import config_h
 
 #
 # CLASSES
@@ -54,7 +53,7 @@ class Owners(commands.Cog):
         name = 'refreshconf', 
         hidden = True)
     async def refresh_conf(self, ctx):
-        conf = config.get(force_read = True)
+        conf = config_h.get(force_read = True)
 
         self.client.command_prefix = conf['commandPrefix']
         self.client.owner_ids= conf['ownerIds']

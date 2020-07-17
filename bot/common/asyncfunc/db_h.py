@@ -1,9 +1,9 @@
 import asyncio
-import config
 import sqlalchemy as sa
 
 from io import StringIO
 from aiopg.sa import create_engine
+from common.syncfunc import config_h
 
 #
 # PRIVATE INTERFACE
@@ -32,7 +32,7 @@ async def _getEngine():
     global _engine
 
     if _engine is None:
-        _engine = await create_engine(**config.get()['postgresql'])
+        _engine = await create_engine(**config_h.get()['postgresql'])
         
         # Create tables if possible
         async with _engine.acquire() as conn:

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 import platform
 import json
@@ -57,16 +59,6 @@ class ReqError(Exception):
 def input_yn(string : str) -> bool:
     return true
 
-def gen_conf(path : str):
-    path_conf = os.path.join(path, "config.json")
-    
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    file = open(os.path.join(path, "config.json"), 'w')
-    json.dump(EXAMPLE_CONF, file, indent=4)
-    file.close()
-
 def dl_requirements_windows():
     from urllib.request import urlopen, Request
     from urllib.error import URLError
@@ -102,6 +94,14 @@ def dl_requirements_linux():
     # or else we have to install another pip package to detect the distro
     pass
 
+def gen_conf(path : str):    
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    file = open(os.path.join(path, "bot.json"), 'w')
+    json.dump(EXAMPLE_CONF, file, indent=4)
+    file.close()
+
 def local():
     system_name = platform.system()
 
@@ -109,7 +109,7 @@ def local():
         if system_name == 'Windows':
             dl_requirements_windows()
         elif system_name == 'Linux':
-            dl_requirements_linux
+            dl_requirements_linux()
         else:
             raise CompatError()
 

@@ -123,8 +123,7 @@ def install_requirements_linux():
     # Download and install apt packages
     try:
         print("...Attempting to download dev dependencies")
-        subprocess.check_call(['sudo', 'apt', 'install', 'libffi-dev', 'libnacl-dev', 'libpq-dev', '-y'], stdout=sys.stdout, stderr=sys.stderr)
-        subprocess.check_call(['sudo', 'apt', 'install', 'python3-pip', '-y'], stdout=sys.stdout, stderr=sys.stderr)
+        subprocess.check_call(['sudo', 'apt', 'install', 'libffi-dev', 'libnacl-dev', 'libpq-dev', 'python3-pip', 'ffmpeg', '-y'], stdout=sys.stdout, stderr=sys.stderr)
         print("...Success, dev dependencies downloaded")
     except subprocess.CalledProcessError:
         raise ReqError()

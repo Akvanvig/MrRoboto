@@ -1,11 +1,17 @@
 # Discord-bot-py
 
 ## Requirements:
+* Python3
 * Discord Auth-token
 
-## Kubernetes:
+## Installation:
 
-## Local:
+1. Run quickstart.py
+  - sudo python3 quickstart.py
+
+### Kubernetes:
+
+### Local:
 
 ### Installation:
 1. Install Python

@@ -8,16 +8,19 @@ import json
 # CONSTANTS
 #
 
-EXAMPLE_CONF = {
+EXAMPLE_SECRETS = {
     'discordToken': 'fdjkakjdfefehsabh93,.3mejnfe',
-    'commandPrefix': '?', 
     'ownerIds': [],
     'postgresql': {
         'user': 'test',
         'database': 'testdb',
         'host': 'localhost',
         'password': 'password'
-    },
+    }
+}
+
+EXAMPLE_CONFIG = {
+    'commandPrefix': '?', 
     'ytdlFormatOptions': {
         'format': 'bestaudio/best',
         'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s', 
@@ -57,7 +60,11 @@ class ReqError(Exception):
 #
 
 def input_yn(string : str) -> bool:
-    return true
+    while True:
+        answer = input(string + " (y/n):    ").lower()
+        if answer in ('y', 'yes'): return True
+        elif answer in ('n', 'no'): return False
+        else: print("Error, enter a valid input")
 
 def dl_requirements_windows():
     from urllib.request import urlopen, Request
@@ -94,34 +101,41 @@ def dl_requirements_linux():
     # or else we have to install another pip package to detect the distro
     pass
 
-def gen_conf(path : str):    
+def gen_configs(path : str):    
     if not os.path.exists(path):
         os.makedirs(path)
 
+    file = open(os.path.join(path, "secrets.json"), 'w')
+    json.dump(EXAMPLE_SECRETS, file, indent=4)
+    file.close()
+    
     file = open(os.path.join(path, "bot.json"), 'w')
-    json.dump(EXAMPLE_CONF, file, indent=4)
+    json.dump(EXAMPLE_CONFIG, file, indent=4)
     file.close()
 
-def local():
-    system_name = platform.system()
+def local(install : bool, generate : bool):
+    if install:
+        system_name = platform.system()
 
-    try:
-        if system_name == 'Windows':
-            dl_requirements_windows()
-        elif system_name == 'Linux':
-            dl_requirements_linux()
-        else:
-            raise CompatError()
+        try:
+            if system_name == 'Windows':
+                dl_requirements_windows()
+            elif system_name == 'Linux':
+                dl_requirements_linux()
+            else:
+                raise CompatError()
 
-        gen_conf("./bot/config")
+        except CompatError:
+            print("Error, you are not on a supported system")
+        except ReqError:
+            print("Error, failed to download a requirement")
 
-    except CompatError:
-        print("Error, you are not on a supported system")
-    except ReqError:
-        print("Error, failed to download a requirement")
+    if generate: 
+        gen_configs("./bot/config")
 
-def kubernetes():
-    gen_conf("./config")
+def kubernetes(install : bool, generate : bool):
+    if generate: 
+        gen_configs("./config")
 
 #
 # MAIN
@@ -132,9 +146,14 @@ def main():
 
     # Ask for type
     # Ask if you want to do a full install, or just a regen of the config
+    use_type = input_yn("Type (Y)es if you are using the bot locally, or (N)o if you are using kubernetes")
+    reqs = input_yn("Do you want to install all requirements?")
+    configs = input_yn("Do you want to generate example config files?")
 
-    #local()
-    #kubernetes()
+    if use_type:
+        local(install = reqs, generate = configs)
+    else:
+        kubernetes(install = reqs, generate = configs)
 
 if __name__ == '__main__':
     main()

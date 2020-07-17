@@ -15,8 +15,8 @@
 
 1. Generate the configmap from file
   - kubectl create configmap bot-config --from-file=/config/bot.json
-2. Create secrets
-  - TODO
+2. Generate the secrets from file
+  - kubectl create secret generic gen-secrets --from-file=/config/secrets.json
 3. Deploy
   - TODO
 

@@ -9,10 +9,10 @@ __author__ = "Anders & Fredrico"
 import os
 import sys
 import logging
-import config
 import asyncio
 
 from discord.ext import commands
+from common.syncfunc import config_h
 
 logging.basicConfig(
     level=logging.WARNING,
@@ -71,7 +71,7 @@ class MrRoboto(commands.Bot):
 # MAIN
 #
 
-conf = config.get()
+conf = config_h.get()
 
 # Win32 compatibility for aiopg
 if sys.platform == 'win32':

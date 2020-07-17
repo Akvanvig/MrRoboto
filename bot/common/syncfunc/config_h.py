@@ -1,15 +1,4 @@
-"""
-Setup config
-"""
-
-import logging
-
-from common.syncfunc.json_h import *
-
-logging.basicConfig(
-    level=logging.WARNING,
-    format="%(asctime)s: %(levelname)s: %(message)s"
-)
+from .json_h import *
 
 _config_cache = None
 
@@ -19,9 +8,13 @@ def get(*, force_read = False):
 
     if force_read or _config_cache == None:
         try:
-            _config_cache = getJson("./config/bot.json")
+            # Read and merge
+            bot_json = getJson("./config/bot.json")
+            secrets_json = getJson("./config/secrets.json")
+
+            _config_cache = {**bot_json, **secrets_json}
         except IOError as e:
-            if e.errno == 2: logging.warning("The bot.json file is missing")
+            if e.errno == 2: print("Config files are missing")
             quit()
 
     return _config_cache

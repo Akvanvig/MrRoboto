@@ -14,6 +14,14 @@ import subprocess
 
 FILE_DIR = os.path.dirname(__file__)
 
+APT_PACKAGES = [
+    'libffi-dev', 
+    'libnacl-dev', 
+    'libpq-dev', 
+    'python3-pip', 
+    'ffmpeg'
+]
+
 EXAMPLE_SECRETS = {
     'discordToken': 'fdjkakjdfefehsabh93,.3mejnfe',
     'ownerIds': [],
@@ -123,12 +131,37 @@ def install_requirements_linux():
     # Download and install apt packages
     try:
         print("...Attempting to download dev dependencies")
-        subprocess.check_call(['sudo', 'apt', 'install', 'libffi-dev', 'libnacl-dev', 'libpq-dev', 'python3-pip', 'ffmpeg', '-y'], stdout=sys.stdout, stderr=sys.stderr)
+        subprocess.check_call(['sudo', 'apt', 'install'] + APT_PACKAGES + ['-y'], stdout=sys.stdout, stderr=sys.stderr)
         print("...Success, dev dependencies downloaded")
     except subprocess.CalledProcessError:
         raise ReqError()
 
-def gen_configs(path : str):    
+def install_requirements(*, local : bool):  
+    print("\n[INSTALLING REQUIREMENTS]")
+
+    # Local
+    if local:
+        system_name = platform.system()
+
+        try:
+            # System specific install requirements
+            if system_name == 'Windows': install_requirements_windows()
+            elif system_name == 'Linux': install_requirements_linux()
+            else: raise CompatError()
+
+            # Download and install pip requirements
+            install_requirements_pip()
+        except CompatError:
+            print("...Error, you are not on a supported system")
+        except ReqError:
+            print("...Error, failed to download a requirement")
+    # Kubernetes
+    else:
+        pass
+
+    print("[FINISHED INSTALLATION]")
+
+def generate_configs_at(path : str):    
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -144,36 +177,17 @@ def gen_configs(path : str):
     file.close()
     print("...Success, file generated")
 
-def local(*, install : bool, generate : bool):
-    if install:
-        system_name = platform.system()
+def generate_configs(*, local : bool):
+    print("\n[GENERATING CONFIGS]")
+    
+    # Local
+    if local:
+        generate_configs_at(os.path.join(FILE_DIR, "bot/config/"))
+    # Kubernetes
+    else:
+        generate_configs_at(os.path.join(FILE_DIR,"config/"))
 
-        try:
-            print("\n[INSTALLING REQUIREMENTS]")
-            # System specific install requirements
-            if system_name == 'Windows': install_requirements_windows()
-            elif system_name == 'Linux': install_requirements_linux()
-            else: raise CompatError()
-
-            # Download and install pip requirements
-            install_requirements_pip()
-        except CompatError:
-            print("...Error, you are not on a supported system")
-        except ReqError:
-            print("...Error, failed to download a requirement")
-        else:
-            print("[FINISHED INSTALLATION]")
-
-    if generate: 
-        print("\n[GENERATING CONFIGS]")
-        gen_configs(os.path.join(FILE_DIR, "bot/config/"))
-        print("[FINISHED GENERATING CONFIGS]")
-
-def kubernetes(*, install : bool, generate : bool):
-    if generate: 
-        print("\n[GENERATING CONFIGS]")
-        gen_configs(os.path.join(FILE_DIR,"config/"))
-        print("[FINISHED GENERATING CONFIGS]")
+    print("[FINISHED GENERATING CONFIGS]")
 
 #
 # MAIN
@@ -185,19 +199,17 @@ def main():
     # Ask for type
     # Ask if user wants to install requirements
     # Ask if user wants to generate example configs
-    use_type = input_yn("Input: \n (Y)es if you are using the bot locally\n (N)o if you are using kubernetes\n")
+    use_local = input_yn("Input: \n (Y)es if you are using the bot locally\n (N)o if you are using kubernetes\n")
     print('')
 
     if input_yn("Is this your first time running quickstart on this machine?"):
-        reqs = configs = True
+        install_reqs = gen_configs = True
     else:
-        reqs = input_yn("Do you want to install all the requirements?")
-        configs = input_yn("Do you want to generate example config files?")
+        install_reqs = input_yn("Do you want to install all the requirements?")
+        gen_configs = input_yn("Do you want to generate example config files?")
 
-    if use_type:
-        local(install = reqs, generate = configs)
-    else:
-        kubernetes(install = reqs, generate = configs)
+    if install_reqs: install_requirements(local = use_local)
+    if gen_configs: generate_configs(local = use_local)
 
     print("\nQuickstart finished running")
 

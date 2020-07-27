@@ -6,8 +6,6 @@ import platform
 import json
 import subprocess
 
-# TODO(Fredrico): Add error messages to ReqError and CompatError exceptions
-
 #
 # CONSTANTS
 #
@@ -86,7 +84,7 @@ def install_requirements_pip():
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", os.path.join(FILE_DIR, "bot/requirements.txt")])
         print("...Success, installed pip requirements")
     except subprocess.CalledProcessError:
-        raise ReqError()
+        raise ReqError("...Error, failed to download/install pip requirements")
 
 def install_requirements_windows():
     from urllib.request import urlopen, Request
@@ -108,7 +106,7 @@ def install_requirements_windows():
             url_file = BytesIO(urlObj.read())
         print("...Success, downloaded ffmpeg")
     except (URLError, IncompleteRead):
-        raise ReqError()
+        raise ReqError("...Error, failed to download ffmpeg")
 
     with ZipFile(url_file, mode = 'r') as zipObj:
         print("...Extracting ffmpeg from archive")
@@ -134,58 +132,58 @@ def install_requirements_linux():
         subprocess.check_call(['sudo', 'apt', 'install'] + APT_PACKAGES + ['-y'], stdout=sys.stdout, stderr=sys.stderr)
         print("...Success, dev dependencies downloaded")
     except subprocess.CalledProcessError:
-        raise ReqError()
+        raise ReqError("...Error, failed to download dev dependencies")
 
 def install_requirements(*, local : bool):  
     print("\n[INSTALLING REQUIREMENTS]")
 
-    # Local
-    if local:
-        system_name = platform.system()
+    try:
+        # Local
+        if local:
+            system_name = platform.system()
 
-        try:
             # System specific install requirements
             if system_name == 'Windows': install_requirements_windows()
             elif system_name == 'Linux': install_requirements_linux()
-            else: raise CompatError()
+            else: raise CompatError("...Error, you are not on a supported system")
 
             # Download and install pip requirements
             install_requirements_pip()
-        except CompatError:
-            print("...Error, you are not on a supported system")
-        except ReqError:
-            print("...Error, failed to download a requirement")
-    # Kubernetes
-    else:
-        pass
+            
+        # Kubernetes
+        else:
+            pass
 
-    print("[FINISHED INSTALLATION]")
+    except (CompatError, ReqError) as e:
+        print(str(e))
 
-def generate_configs_at(path : str):    
-    if not os.path.exists(path):
-        os.makedirs(path)
+    print("[FINISHED INSTALLING REQUIREMENTS]")
 
-    print("...Attempting to generate secrets.json file in {}.".format(path))
-    file = open(os.path.join(path, "secrets.json"), 'w')
-    json.dump(EXAMPLE_SECRETS, file, indent=4)
-    file.close()
-    print("...Success, file generated")
-    
-    print("...Attempting to generate bot.json file in {}.".format(path))
-    file = open(os.path.join(path, "bot.json"), 'w')
-    json.dump(EXAMPLE_CONFIG, file, indent=4)
+def create_file_at(file_obj, path : str, filename : str):
+    print("...Attempting to generate {} file in {}.".format(filename, path))
+    file = open(os.path.join(path, filename), 'w')
+    json.dump(file_obj, file, indent=4)
     file.close()
     print("...Success, file generated")
 
 def generate_configs(*, local : bool):
     print("\n[GENERATING CONFIGS]")
-    
-    # Local
-    if local:
-        generate_configs_at(os.path.join(FILE_DIR, "bot/config/"))
-    # Kubernetes
-    else:
-        generate_configs_at(os.path.join(FILE_DIR,"config/"))
+
+    try:
+        # Local
+        if local:
+            path = os.path.join(FILE_DIR, "bot/config/")
+        # Kubernetes
+        else:
+            path = os.path.join(FILE_DIR, "config/")
+
+        if not os.path.exists(path): os.makedirs(path)
+
+        create_file_at(EXAMPLE_SECRETS, path, "secrets.json")
+        create_file_at(EXAMPLE_CONFIG, path, "bot.json")
+
+    except IOError as e:
+        print("...Error, failed to generate configs")
 
     print("[FINISHED GENERATING CONFIGS]")
 

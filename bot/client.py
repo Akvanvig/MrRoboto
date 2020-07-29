@@ -71,18 +71,15 @@ class MrRoboto(commands.Bot):
 # MAIN
 #
 
-def main():
-    conf = config_h.get()
+conf = config_h.get()
 
-    # Win32 compatibility for aiopg
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+# Win32 compatibility for aiopg
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    client = MrRoboto(command_prefix = conf['commandPrefix'], case_insensitive = True, owner_ids = conf['ownerIds'])
+client = MrRoboto(command_prefix = conf['commandPrefix'], case_insensitive = True, owner_ids = conf['ownerIds'])
 
-    for extension in INITIAL_EXTENSIONS:
-        client.load_extension(extension)
+for extension in INITIAL_EXTENSIONS:
+    client.load_extension(extension)
 
-    client.run(conf['discordToken'], bot=True, reconnect=True)
-
-main()
+client.run(conf['discordToken'], bot=True, reconnect=True)

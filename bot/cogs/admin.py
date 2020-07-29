@@ -1,5 +1,6 @@
 import os
 import asyncio
+import sqlalchemy as sa
 
 from discord import utils
 from discord.ext import commands
@@ -8,6 +9,13 @@ from common import *
 #
 # CONSTANTS
 #
+
+MUTED_TABLE = sa.Table(
+    'muted', db_h.META,
+    sa.Column('guild_id', sa.BigInteger, primary_key = True),
+    sa.Column('user_id', sa.BigInteger, primary_key = True),
+    sa.Column('unmutedate', sa.String, nullable = False)
+)
 
 MUTED_ROLE = "muted"
 MUTETIME_LIMIT = time_h.args_to_delta(days = 1)
@@ -24,33 +32,24 @@ class Admin(commands.Cog):
     # Read mute list from disk on_ready to avoid permanent mutes
     @commands.Cog.listener()
     async def on_ready(self):
-        # TODO(Fredrico): Rewrite to use sql
-        """if not os.path.isfile(MUTED_PATH):
-            json_h.saveJson({}, MUTED_PATH)
-            return
-
+        muted_rows = await db_h.exec_query(MUTED_TABLE.select())
         currentdate = time_h.get_current_date()
-        json = json_h.getJson(MUTED_PATH)
-        
         members_to_unmute = []
 
-        for guild_id, members in json.items():
-            guild = self.client.get_guild(int(guild_id))
+        for row in muted_rows:
+            guild = self.client.get_guild(row[MUTED_TABLE.c.guild_id])
+            member = guild.get_member(row[MUTED_TABLE.c.user_id])
+            unmutedate = time_h.str_to_date(row[MUTED_TABLE.c.unmutedate])
 
-            for member_id, date_str in members.items():
-                member = guild.get_member(int(member_id))
-                unmutedate = time_h.str_to_date(date_str)
+            # Unmute immediately (group calls together)
+            if currentdate >= unmutedate:
+                members_to_unmute.append(member)
+            # Unmute later
+            else:
+                unmuteseconds = (unmutedate - currentdate).total_seconds()
+                asyncio.create_task(async_h.run_coro_in(self._unmute(member), unmuteseconds))
 
-                # Unmute immediately (group calls together)
-                if currentdate >= unmutedate:
-                    members_to_unmute.append(member)
-                # Unmute later
-                else:
-                    unmuteseconds = (unmutedate - currentdate).total_seconds()
-                    asyncio.create_task(async_h.run_coro_in(self._unmute(member), unmuteseconds))
-
-        if len(members_to_unmute) > 0: await self._unmute(*members_to_unmute)"""
-        pass
+        if len(members_to_unmute) > 0: await self._unmute(*members_to_unmute)
 
     # Check if admin
     async def cog_check(self, ctx):
@@ -73,9 +72,11 @@ class Admin(commands.Cog):
             botuser = self.client.user
             prefixes = tuple(self.client.command_prefix)
 
-            isCmdOrBot = lambda msg: True if msg.author == botuser or msg.content.startswith(prefixes) else False
+            def is_cmd_or_bot(msg):
+                if msg.author == botuser or msg.content.startswith(prefixes): return True
+                return False
 
-            await ctx.channel.purge(limit=lim, check=isCmdOrBot, before=ctx.message, bulk=True)
+            await ctx.channel.purge(limit=lim, check=is_cmd_or_bot, before=ctx.message, bulk=True)
 
     # Clear ALL channel messages
     @_clear.command(
@@ -89,16 +90,13 @@ class Admin(commands.Cog):
 
     # Unmute member(s) and remove them from the json list
     async def _unmute(self, *members):
-        # TODO(Fredrico): Rewrite to use sql
-        #json = json_h.getJson(MUTED_PATH)
-        
-        #for member in members:
-        #    try:
-        #        del json[str(member.guild.id)][str(member.id)]
-        #    except KeyError as e:
-        #        pass # Do nothing
-
-        #json_h.saveJson(json, MUTED_PATH)
+        await db_h.exec_query(MUTED_TABLE.delete().where(
+            sa.tuple_(
+                MUTED_TABLE.c.guild_id, MUTED_TABLE.c.user_id
+            ).in_(
+                tuple(member.guild.id, member.id) for member in members)
+            )
+        )
         
         for member in members: 
             await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
@@ -127,10 +125,14 @@ class Admin(commands.Cog):
 
         unmutedate = time_h.date_to_str(time_h.get_current_date() + mutetime)
 
-        # TODO(Fredrico): Rewrite to use sql
-        #json = json_h.getJson(MUTED_PATH)
-        #json.setdefault(str(ctx.guild.id), {})[str(member.id)] = unmutedate
-        #json_h.saveJson(json, MUTED_PATH)
+        await db_h.exec_query(MUTED_TABLE.insert().values(
+                guild_id = ctx.guild.id,
+                user_id = member.id,
+                unmutedate = unmutedate
+            ).on_conflict_do_update(
+                set_ = dict(unmutedate = unmutedate)
+            )
+        )
 
         await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
         if member.voice: await member.move_to(channel = member.voice.channel)

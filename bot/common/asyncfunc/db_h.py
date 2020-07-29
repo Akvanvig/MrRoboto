@@ -4,54 +4,64 @@ import sqlalchemy as sa
 from io import StringIO
 from aiopg.sa import create_engine
 from common.syncfunc import config_h
+from psycopg2.errors import DuplicateTable
 
 #
 # PRIVATE INTERFACE
 #
 
-# TODO(Fredrico): Cleanup private interface
+class Db():
+    def __init__(self):
+        self._engine = None
+        self._mock_engine = sa.create_engine('postgres://', strategy="mock", executor=self._mock_dump_sql)
+        self._mock_dump = None
 
-_engine = None
-_meta = sa.MetaData()
-
-# Workaround for aiopg not allowing create_all directly
-def _dump_sql(func, *args, **kwargs):
-    out = StringIO()
-
-    def dump(sql, *multiparams, **params):
-        out.write(str(sql.compile(dialect=dump.dialect)))
-
-    engine = sa.create_engine('postgres://', strategy="mock", executor=dump)
-    dump.dialect = engine.dialect
-
-    func(*args, bind=engine, **kwargs)
-
-    return out.getvalue()
-
-async def _getEngine():
-    global _engine
-
-    if _engine is None:
-        _engine = await create_engine(**config_h.get()['postgresql'])
+    # Cleanup engine
+    def __del__(self):
+        if self._engine is None: return
         
-        # Create tables if possible
-        async with _engine.acquire() as conn:
-            await conn.execute(_dump_sql(_meta.create_all))
+        asyncio.run(self._engine.close())
+        self._engine = None
 
-    return _engine
+    def _mock_dump_sql(self, sql, *multiparams, **params):
+        self._mock_dump = str(sql.compile(dialect=self._mock_engine.dialect))
+
+    # Execute query
+    async def _exec_query(self, query):
+        async with self._engine.acquire() as conn:
+            result = await conn.execute(query)
+            return await result.fetchall()
+
+    # Lock subsequent calls and make them wait
+    async def _exec_query_wait(self, query):
+        while self._engine is None: await asyncio.sleep(1.0)
+        self._exec_query(query)
+
+    # Create a new engine before calling _exec_query
+    async def _exec_query_first(self, query):
+        global exec_query
+
+        exec_query = self._exec_query_wait
+        self._engine = await create_engine(**config_h.get()['postgresql'])
+
+        # Create tables if possible
+        async with self._engine.acquire() as conn:
+            try:
+                META.create_all(bind=self._mock_engine)
+                await conn.execute(self._mock_dump)
+            except DuplicateTable:
+                # Tables already exist
+                pass
+
+        exec_query = self._exec_query
+        return await self._exec_query(query)
+
+
+_DB = Db()
 
 #
 # PUBLIC INTERFACE
 #
 
-MUTED_TABLE = sa.Table(
-    'muted', _meta,
-    sa.Column('guild_id', sa.Integer, primary_key = True),
-    sa.Column('user_id', sa.Integer, primary_key = True),
-    sa.Column('unmutedate', sa.String, nullable = False)
-)
-
-async def exec_query(query):
-    engine = await _getEngine()
-    async with engine.aquire() as conn:
-        return await conn.execute(query)
+META = sa.MetaData()
+exec_query = _DB._exec_query_first

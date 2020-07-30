@@ -26,8 +26,8 @@ INITIAL_EXTENSIONS  = ['cogs.admin',
 #
 
 class MrRoboto(commands.Bot):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.db = db_h.Db()
 
     async def on_ready(self):

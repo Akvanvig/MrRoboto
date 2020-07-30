@@ -4,18 +4,12 @@ import sqlalchemy as sa
 
 from discord import utils
 from discord.ext import commands
-from common import *
+from common.asyncfunc import async_h
+from common.syncfunc import time_h
 
 #
 # CONSTANTS
 #
-
-MUTED_TABLE = sa.Table(
-    'muted', db_h.META,
-    sa.Column('guild_id', sa.BigInteger, primary_key = True),
-    sa.Column('user_id', sa.BigInteger, primary_key = True),
-    sa.Column('unmutedate', sa.String, nullable = False)
-)
 
 MUTED_ROLE = "muted"
 MUTETIME_LIMIT = time_h.args_to_delta(days = 1)
@@ -29,17 +23,26 @@ class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+        # Tables
+        self.muted_table = sa.Table(
+            'muted', client.db.meta
+            sa.Column('guild_id', sa.BigInteger, primary_key = True),
+            sa.Column('user_id', sa.BigInteger, primary_key = True),
+            sa.Column('unmutedate', sa.String, nullable = False),
+            keep_existing = True
+        )
+
     # Read mute list from disk on_ready to avoid permanent mutes
     @commands.Cog.listener()
     async def on_ready(self):
-        muted_rows = await db_h.exec_query(MUTED_TABLE.select())
+        muted_rows = await self.client.db.exec_query(self.muted_table.select())
         currentdate = time_h.get_current_date()
         members_to_unmute = []
 
         for row in muted_rows:
-            guild = self.client.get_guild(row[MUTED_TABLE.c.guild_id])
-            member = guild.get_member(row[MUTED_TABLE.c.user_id])
-            unmutedate = time_h.str_to_date(row[MUTED_TABLE.c.unmutedate])
+            guild = self.client.get_guild(row[self.muted_table.c.guild_id])
+            member = guild.get_member(row[self.muted_table.c.user_id])
+            unmutedate = time_h.str_to_date(row[self.muted_table.c.unmutedate])
 
             # Unmute immediately (group calls together)
             if currentdate >= unmutedate:
@@ -90,9 +93,9 @@ class Admin(commands.Cog):
 
     # Unmute member(s) and remove them from the json list
     async def _unmute(self, *members):
-        await db_h.exec_query(MUTED_TABLE.delete().where(
+        await self.client.db.exec_query(self.muted_table.delete().where(
             sa.tuple_(
-                MUTED_TABLE.c.guild_id, MUTED_TABLE.c.user_id
+                self.muted_table.c.guild_id, self.muted_table.c.user_id
             ).in_(
                 tuple(member.guild.id, member.id) for member in members)
             )
@@ -125,7 +128,7 @@ class Admin(commands.Cog):
 
         unmutedate = time_h.date_to_str(time_h.get_current_date() + mutetime)
 
-        await db_h.exec_query(MUTED_TABLE.insert().values(
+        await self.client.db.exec_query(self.muted_table.insert().values(
                 guild_id = ctx.guild.id,
                 user_id = member.id,
                 unmutedate = unmutedate

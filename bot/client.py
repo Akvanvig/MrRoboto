@@ -12,12 +12,8 @@ import logging
 import asyncio
 
 from discord.ext import commands
+from common.asyncfunc import db_h
 from common.syncfunc import config_h
-
-logging.basicConfig(
-    level=logging.WARNING,
-    format="%(asctime)s: %(levelname)s: %(message)s"
-)
 
 INITIAL_EXTENSIONS  = ['cogs.admin',
                        'cogs.animations',
@@ -30,6 +26,10 @@ INITIAL_EXTENSIONS  = ['cogs.admin',
 #
 
 class MrRoboto(commands.Bot):
+    def __init__(self):
+        super().__init__()
+        self.db = db_h.Db()
+
     async def on_ready(self):
         print('Logged in as')
         print(self.user.name)
@@ -37,14 +37,15 @@ class MrRoboto(commands.Bot):
         print('------')
 
     async def on_command(self, ctx):
-        logging.info(ctx.author.name+": "+ctx.message.content)
+        pass
 
     async def on_message(self, message):
         if message.author != client.user:
             print(message.author.name+": "+message.content)
         await client.process_commands(message)
 
-
+    # Todo(Fredrico/Anders): Try to keep errors local
+    # on a per command basis
     async def on_command_error(self, ctx, error):
         # Return if handled by local error handler
         if hasattr(ctx.command, "on_error"): return

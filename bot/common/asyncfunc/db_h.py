@@ -7,21 +7,22 @@ from common.syncfunc import config_h
 from psycopg2.errors import DuplicateTable
 
 #
-# PRIVATE INTERFACE
+# PUBLIC INTERFACE
 #
 
-class Db():
+class Db:
     def __init__(self):
+        # Private
         self._engine = None
         self._mock_engine = sa.create_engine('postgres://', strategy="mock", executor=self._mock_dump_sql)
         self._mock_dump = None
-
-    # Cleanup engine
-    def __del__(self):
-        if self._engine is None: return
         
-        asyncio.run(self._engine.close())
-        self._engine = None
+        # Public
+        self.meta = sa.MetaData()
+        self.exec_query = self._exec_query_first
+
+    def __del__(self):
+        if self._engine: asyncio.run(self._engine.close())
 
     def _mock_dump_sql(self, sql, *multiparams, **params):
         self._mock_dump = str(sql.compile(dialect=self._mock_engine.dialect))
@@ -39,29 +40,24 @@ class Db():
 
     # Create a new engine before calling _exec_query
     async def _exec_query_first(self, query):
-        global exec_query
-
-        exec_query = self._exec_query_wait
+        self.exec_query = self._exec_query_wait
         self._engine = await create_engine(**config_h.get()['postgresql'])
 
-        # Create tables if possible
+        # We can't call meta.create_all, as we're using
+        # a mock_engine to get the sql query, meaning
+        # the checkfirst arg is useless. As a result
+        # create_all might throw a single DuplicateTable error
+        # subsequently dropping to create new non-duplicate ones.
+        # Therefore we create each table individually
+        # and catch DuplicateTable errors on a per table basis.
         async with self._engine.acquire() as conn:
-            try:
-                META.create_all(bind=self._mock_engine)
-                await conn.execute(self._mock_dump)
-            except DuplicateTable:
-                # Tables already exist
-                pass
+            for table in self.meta.tables.values():
+                try:
+                    table.create(bind=self._mock_engine)
+                    await conn.execute(self._mock_dump)
+                except DuplicateTable:
+                    # Table already exist
+                    pass
 
-        exec_query = self._exec_query
+        self.exec_query = self._exec_query
         return await self._exec_query(query)
-
-
-_DB = Db()
-
-#
-# PUBLIC INTERFACE
-#
-
-META = sa.MetaData()
-exec_query = _DB._exec_query_first

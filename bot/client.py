@@ -55,10 +55,12 @@ class PostgresDb:
     # Wait for startup to finish
     async def _exec_query_wait(self, query):
         await self._started.wait()
-        self._exec_query(query)
+        return await self._exec_query(query)
 
     # Startup the db
     async def startup(self):
+        if self._engine: return
+        
         self._engine = await create_engine(**config_h.get()['postgresql'])
 
         # We can't call meta.create_all, as we're using

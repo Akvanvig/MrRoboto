@@ -8,12 +8,13 @@ __author__ = "Anders & Fredrico"
 
 import os
 import sys
-import logging
 import asyncio
+import sqlalchemy as sa
 
+from aiopg.sa import create_engine
 from discord.ext import commands
-from common.asyncfunc import db_h
 from common.syncfunc import config_h
+from psycopg2.errors import DuplicateTable
 
 INITIAL_EXTENSIONS  = ['cogs.admin',
                        'cogs.animations',
@@ -25,16 +26,72 @@ INITIAL_EXTENSIONS  = ['cogs.admin',
 # CLASSES
 #
 
+# TODO(Fredrico/Anders): Config can be shared between classes
+
+class PostgresDb:
+    def __init__(self):
+        # Private
+        self._engine = None
+        self._mock_engine = sa.create_engine('postgres://', strategy="mock", executor=self._mock_dump_sql)
+        self._mock_dump = None
+        self._started = asyncio.Event()
+        
+        # Public
+        self.meta = sa.MetaData()
+        self.exec_query = self._exec_query_wait
+
+    def __del__(self):
+        if self._engine: asyncio.run(self._engine.close())
+
+    def _mock_dump_sql(self, sql, *multiparams, **params):
+        self._mock_dump = str(sql.compile(dialect=self._mock_engine.dialect))
+
+    # Execute query
+    async def _exec_query(self, query):
+        async with self._engine.acquire() as conn:
+            result = await conn.execute(query)
+            return await result.fetchall()
+
+    # Wait for startup to finish
+    async def _exec_query_wait(self, query):
+        await self._started.wait()
+        self._exec_query(query)
+
+    # Startup the db
+    async def startup(self):
+        self._engine = await create_engine(**config_h.get()['postgresql'])
+
+        # We can't call meta.create_all, as we're using
+        # a mock_engine to get the sql query, meaning
+        # the checkfirst arg is useless. As a result
+        # create_all might throw a single DuplicateTable error
+        # subsequently dropping to create new non-duplicate ones.
+        # Therefore we create each table individually
+        # and catch DuplicateTable errors on a per table basis.
+        async with self._engine.acquire() as conn:
+            for table in self.meta.tables.values():
+                try:
+                    table.create(bind=self._mock_engine)
+                    await conn.execute(self._mock_dump)
+                except DuplicateTable:
+                    # Table already exist
+                    pass
+
+        self.exec_query = self._exec_query
+        self._started.set()
+
 class MrRoboto(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.db = db_h.Db()
+        self.db = PostgresDb()
 
     async def on_ready(self):
         print('Logged in as')
         print(self.user.name)
         print(self.user.id)
         print('------')
+
+        await self.db.startup()
 
     async def on_command(self, ctx):
         pass

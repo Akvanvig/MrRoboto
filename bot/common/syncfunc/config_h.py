@@ -1,4 +1,4 @@
-from .json_h import *
+from .json_h import getJson
 from os.path import dirname, join
 
 #
@@ -12,6 +12,8 @@ _config_cache = None
 #
 # PUBLIC INTERFACE
 #
+
+# TODO(Fredrico): Separate into different functions
 
 # Set force_read to True to read from disk
 def get(*, force_read = False):

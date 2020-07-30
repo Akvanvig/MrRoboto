@@ -1,1 +1,1 @@
-__all__ = ('async_h', 'db_h')
+__all__ = ('async_h')

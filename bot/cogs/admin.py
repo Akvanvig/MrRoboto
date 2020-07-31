@@ -25,7 +25,7 @@ class Admin(commands.Cog):
 
         # Tables
         self.muted_table = sa.Table(
-            'muted', client.db.meta
+            'muted', client.db.meta,
             sa.Column('guild_id', sa.BigInteger, primary_key = True),
             sa.Column('user_id', sa.BigInteger, primary_key = True),
             sa.Column('unmutedate', sa.String, nullable = False),
@@ -36,23 +36,25 @@ class Admin(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         muted_rows = await self.client.db.exec_query(self.muted_table.select())
-        currentdate = time_h.get_current_date()
-        members_to_unmute = []
 
-        for row in muted_rows:
-            guild = self.client.get_guild(row[self.muted_table.c.guild_id])
-            member = guild.get_member(row[self.muted_table.c.user_id])
-            unmutedate = time_h.str_to_date(row[self.muted_table.c.unmutedate])
+        if muted_rows:
+            currentdate = time_h.get_current_date()
+            members_to_unmute = []
 
-            # Unmute immediately (group calls together)
-            if currentdate >= unmutedate:
-                members_to_unmute.append(member)
-            # Unmute later
-            else:
-                unmuteseconds = (unmutedate - currentdate).total_seconds()
-                asyncio.create_task(async_h.run_coro_in(self._unmute(member), unmuteseconds))
+            for row in muted_rows:
+                guild = self.client.get_guild(row[self.muted_table.c.guild_id])
+                member = guild.get_member(row[self.muted_table.c.user_id])
+                unmutedate = time_h.str_to_date(row[self.muted_table.c.unmutedate])
 
-        if len(members_to_unmute) > 0: await self._unmute(*members_to_unmute)
+                # Unmute immediately (group calls together)
+                if currentdate >= unmutedate:
+                    members_to_unmute.append(member)
+                # Unmute later
+                else:
+                    unmuteseconds = (unmutedate - currentdate).total_seconds()
+                    asyncio.create_task(async_h.run_coro_in(self._unmute(member), unmuteseconds))
+
+            if len(members_to_unmute) > 0: await self._unmute(*members_to_unmute)
 
     # Check if admin
     async def cog_check(self, ctx):
@@ -97,9 +99,9 @@ class Admin(commands.Cog):
             sa.tuple_(
                 self.muted_table.c.guild_id, self.muted_table.c.user_id
             ).in_(
-                tuple(member.guild.id, member.id) for member in members)
+                [(member.guild.id, member.id) for member in members]
             )
-        )
+        ))
         
         for member in members: 
             await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
@@ -128,20 +130,23 @@ class Admin(commands.Cog):
 
         unmutedate = time_h.date_to_str(time_h.get_current_date() + mutetime)
 
-        await self.client.db.exec_query(self.muted_table.insert().values(
-                guild_id = ctx.guild.id,
-                user_id = member.id,
-                unmutedate = unmutedate
-            ).on_conflict_do_update(
-                set_ = dict(unmutedate = unmutedate)
-            )
+        # TODO(Fredrico): should we store current mutes, or should we just disable the mute command
+        # if the player is already muted?
+        stmt = sa.dialects.postgresql.insert(self.muted_table).values(
+            guild_id = ctx.guild.id, 
+            user_id = member.id, 
+            unmutedate = unmutedate
+        ).on_conflict_do_update(
+            constraint = self.muted_table.primary_key,
+            set_ = dict(unmutedate = unmutedate)
         )
+        await self.client.db.exec_query(stmt)
 
         await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
         if member.voice: await member.move_to(channel = member.voice.channel)
         
         dm = await member.create_dm()
-        await dm.send("You've been muted in {} for {}".format(ctx.guild, str(mutetime)))
+        await dm.send("You've been muted in {} for time period: {}".format(ctx.guild, str(mutetime)))
         
         await async_h.run_coro_in(self._unmute(member), mutetime.total_seconds())
 

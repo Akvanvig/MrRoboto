@@ -12,13 +12,13 @@ import subprocess
 
 FILE_DIR = os.path.dirname(__file__)
 
-APT_PACKAGES = [
+APT_PACKAGES = (
     'libffi-dev', 
     'libnacl-dev', 
     'libpq-dev', 
     'python3-pip', 
     'ffmpeg'
-]
+)
 
 EXAMPLE_SECRETS = {
     'discordToken': 'fdjkakjdfefehsabh93,.3mejnfe',

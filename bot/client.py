@@ -16,11 +16,11 @@ from discord.ext import commands
 from common.syncfunc import config_h
 from psycopg2.errors import DuplicateTable
 
-INITIAL_EXTENSIONS  = ['cogs.admin',
+INITIAL_EXTENSIONS  = ('cogs.admin',
                        'cogs.animations',
                        'cogs.audio',
                        'cogs.commands',
-                       'cogs.owners']
+                       'cogs.owners')
 
 #
 # CLASSES
@@ -50,7 +50,11 @@ class PostgresDb:
     async def _exec_query(self, query):
         async with self._engine.acquire() as conn:
             result = await conn.execute(query)
-            return await result.fetchall()
+
+            if result.returns_rows: 
+                return await result.fetchall()
+            else:
+                return None
 
     # Wait for startup to finish
     async def _exec_query_wait(self, query):
@@ -103,8 +107,7 @@ class MrRoboto(commands.Bot):
             print(message.author.name+": "+message.content)
         await client.process_commands(message)
 
-    # Todo(Fredrico/Anders): Try to keep errors local
-    # on a per command basis
+    # TODO(Fredrico/Anders): Try to keep errors local on a per command basis
     async def on_command_error(self, ctx, error):
         # Return if handled by local error handler
         if hasattr(ctx.command, "on_error"): return

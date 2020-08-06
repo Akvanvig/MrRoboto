@@ -26,49 +26,49 @@ INITIAL_EXTENSIONS  = ('cogs.admin',
 # CLASSES
 #
 
-# TODO(Fredrico/Anders): Config can be shared between classes
-
 class PostgresDB:
     def __init__(self):
-        # Private
-        self._engine = None
+        self._wrapped_engine = None
         self._mock_engine = sa.create_engine('postgres://', strategy="mock", executor=self._dump_sql)
         self._mock_dump = None
-        
-        # Public
         self.meta = sa.MetaData()
-        self.acquire = None
+
+    def __getattr__(self, name):
+        # Attribute does not exist in PostgresDB,
+        # so we check the wrapped engine for a match.
+        if self._wrapped_engine:
+            return self._wrapped.__getattribute__(name)
+        else:
+            raise AttributeError(name)
 
     def _dump_sql(self, sql, *multiparams, **params):
         self._mock_dump = str(sql.compile(dialect=self._mock_engine.dialect))
 
-    async def start(self, *args, **kwargs):
-        if self._engine: return
-        
-        self._engine = await create_engine(*args, **kwargs)
+    async def startdb(self, *args, **kwargs):
+        if not self._wrapped_engine:
+            self._wrapped_engine = create_engine(*args, **kwargs)
 
-        # We can't call meta.create_all, as we're using
-        # a mock_engine to get the sql query, meaning
-        # the checkfirst arg is useless. As a result
-        # create_all might throw a single DuplicateTable error
-        # subsequently dropping to create new non-duplicate ones.
-        # Therefore we create each table individually
-        # and catch DuplicateTable errors on a per table basis.
-        async with self._engine.acquire() as conn:
-            for table in self.meta.tables.values():
-                try:
-                    table.create(bind=self._mock_engine)
-                    await conn.execute(self._mock_dump)
-                except DuplicateTable:
-                    # Table already exist
-                    pass
+            # We can't call meta.create_all, as we're using
+            # a mock_engine to get the sql query, meaning
+            # the checkfirst arg is useless. As a result
+            # create_all might throw a single DuplicateTable error
+            # subsequently dropping to create new non-duplicate ones.
+            # Therefore we create each table individually
+            # and catch DuplicateTable errors on a per table basis.
+            async with self._wrapped_engine.acquire() as conn:
+                for table in self.meta.tables.values():
+                    try:
+                        table.create(bind=self._mock_engine)
+                        await conn.execute(self._mock_dump)
+                    except DuplicateTable:
+                        # Table already exist
+                        pass
 
-        self.acquire = self._engine.acquire
-
-    async def stop(self):
-        if self._engine: 
-            self._engine.close()
-            await self._engine.wait_closed()
+    async def stopdb(self):
+        if self._wrapped_engine: 
+            self._wrapped_engine.close()
+            await self._wrapped_engine.wait_closed()
+            self._wrapped_engine = None
 
 class MrRoboto(commands.Bot):
     def __init__(self, *args, **kwargs):
@@ -117,12 +117,12 @@ class MrRoboto(commands.Bot):
 #
 
 async def start(client : MrRoboto, conf):
-    await client.db.start(**conf['postgresql'])
+    await client.db.startdb(**conf['postgresql'])
     await client.start(conf['discordToken'], bot=True, reconnect=True)
 
 async def stop(client : MrRoboto):
     await client.logout()
-    await client.db.stop()
+    await client.db.stopdb()
 
 def main():
     # Win32 compatibility for aiopg

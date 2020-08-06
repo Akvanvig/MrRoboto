@@ -28,44 +28,24 @@ INITIAL_EXTENSIONS  = ('cogs.admin',
 
 # TODO(Fredrico/Anders): Config can be shared between classes
 
-class PostgresDb:
+class PostgresDB:
     def __init__(self):
         # Private
         self._engine = None
-        self._mock_engine = sa.create_engine('postgres://', strategy="mock", executor=self._mock_dump_sql)
+        self._mock_engine = sa.create_engine('postgres://', strategy="mock", executor=self._dump_sql)
         self._mock_dump = None
-        self._started = asyncio.Event()
         
         # Public
         self.meta = sa.MetaData()
-        self.exec_query = self._exec_query_wait
+        self.acquire = None
 
-    def __del__(self):
-        if self._engine: asyncio.run(self._engine.close())
-
-    def _mock_dump_sql(self, sql, *multiparams, **params):
+    def _dump_sql(self, sql, *multiparams, **params):
         self._mock_dump = str(sql.compile(dialect=self._mock_engine.dialect))
 
-    # Execute query
-    async def _exec_query(self, query):
-        async with self._engine.acquire() as conn:
-            result = await conn.execute(query)
-
-            if result.returns_rows: 
-                return await result.fetchall()
-            else:
-                return None
-
-    # Wait for startup to finish
-    async def _exec_query_wait(self, query):
-        await self._started.wait()
-        return await self._exec_query(query)
-
-    # Startup the db
-    async def startup(self):
+    async def start(self, *args, **kwargs):
         if self._engine: return
         
-        self._engine = await create_engine(**config_h.get()['postgresql'])
+        self._engine = await create_engine(*args, **kwargs)
 
         # We can't call meta.create_all, as we're using
         # a mock_engine to get the sql query, meaning
@@ -83,13 +63,17 @@ class PostgresDb:
                     # Table already exist
                     pass
 
-        self.exec_query = self._exec_query
-        self._started.set()
+        self.acquire = self._engine.acquire
+
+    async def stop(self):
+        if self._engine: 
+            self._engine.close()
+            await self._engine.wait_closed()
 
 class MrRoboto(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.db = PostgresDb()
+        self.db = PostgresDB()
 
     async def on_ready(self):
         print('Logged in as')
@@ -97,15 +81,13 @@ class MrRoboto(commands.Bot):
         print(self.user.id)
         print('------')
 
-        await self.db.startup()
-
     async def on_command(self, ctx):
         pass
 
     async def on_message(self, message):
-        if message.author != client.user:
+        if message.author != self.user:
             print(message.author.name+": "+message.content)
-        await client.process_commands(message)
+        await self.process_commands(message)
 
     # TODO(Fredrico/Anders): Try to keep errors local on a per command basis
     async def on_command_error(self, ctx, error):
@@ -134,15 +116,37 @@ class MrRoboto(commands.Bot):
 # MAIN
 #
 
-conf = config_h.get()
+async def start(client : MrRoboto, conf):
+    await client.db.start(**conf['postgresql'])
+    await client.start(conf['discordToken'], bot=True, reconnect=True)
 
-# Win32 compatibility for aiopg
-if sys.platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+async def stop(client : MrRoboto):
+    await client.logout()
+    await client.db.stop()
 
-client = MrRoboto(command_prefix = conf['commandPrefix'], case_insensitive = True, owner_ids = conf['ownerIds'])
+def main():
+    # Win32 compatibility for aiopg
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-for extension in INITIAL_EXTENSIONS:
-    client.load_extension(extension)
+    loop = asyncio.get_event_loop()
+    conf = config_h.get()
 
-client.run(conf['discordToken'], bot=True, reconnect=True)
+    client = MrRoboto(
+        loop = loop, 
+        command_prefix = conf['commandPrefix'], 
+        case_insensitive = True, 
+        owner_ids = conf['ownerIds']
+    )
+
+    for extension in INITIAL_EXTENSIONS:
+        client.load_extension(extension)
+
+    try:
+        loop.run_until_complete(start(client, conf))
+    except KeyboardInterrupt:
+        loop.run_until_complete(stop(client))
+    finally:
+        loop.close()
+
+main()

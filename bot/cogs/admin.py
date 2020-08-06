@@ -2,17 +2,18 @@ import os
 import asyncio
 import sqlalchemy as sa
 
-from discord import utils
+from discord import utils, Member
 from discord.ext import commands
 from common.asyncfunc import async_h
-from common.syncfunc import time_h
+from common.syncfunc.time_h import DEFAULT_TIMEDELTA, datetime_ext, timedelta_ext, Task
+from functools import partial
 
 #
 # CONSTANTS
 #
 
 MUTED_ROLE = "muted"
-MUTETIME_LIMIT = time_h.args_to_delta(days = 1)
+MUTETIME_LIMIT = timedelta_ext(days = 1)
 HISTORY_LIMIT = 300
 
 #
@@ -22,8 +23,8 @@ HISTORY_LIMIT = 300
 class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.muted_members = {}
 
-        # Tables
         self.muted_table = sa.Table(
             'muted', client.db.meta,
             sa.Column('guild_id', sa.BigInteger, primary_key = True),
@@ -32,29 +33,43 @@ class Admin(commands.Cog):
             keep_existing = True
         )
 
-    # Read mute list from disk on_ready to avoid permanent mutes
     @commands.Cog.listener()
     async def on_ready(self):
-        muted_rows = await self.client.db.exec_query(self.muted_table.select())
+        # Read mute list from disk on_ready to avoid permanent mutes
+        async with self.client.db.acquire() as conn:
+            currentdate = datetime_ext.now()
+            members_tuple = []
 
-        if muted_rows:
-            currentdate = time_h.get_current_date()
-            members_to_unmute = []
-
-            for row in muted_rows:
+            async for row in conn.execute(self.muted_table.select()):
                 guild = self.client.get_guild(row[self.muted_table.c.guild_id])
                 member = guild.get_member(row[self.muted_table.c.user_id])
-                unmutedate = time_h.str_to_date(row[self.muted_table.c.unmutedate])
+                unmutedate = datetime_ext.from_str(row[self.muted_table.c.unmutedate])
 
-                # Unmute immediately (group calls together)
+                # Unmute immediately, and append to delete statement
                 if currentdate >= unmutedate:
-                    members_to_unmute.append(member)
+                    await self._unmute(member)
+                    members_tuple.append((guild.id, member.id))
                 # Unmute later
-                else:
-                    unmuteseconds = (unmutedate - currentdate).total_seconds()
-                    asyncio.create_task(async_h.run_coro_in(self._unmute(member), unmuteseconds))
+                elif member not in self.muted_members:
+                    mute_task = Task(
+                        coro = partial(self._unmute, member),
+                        count = 1,
+                        delay = True,
+                        seconds = (unmutedate - currentdate).total_seconds()
+                    )
+                    self.muted_members[member] = mute_task
 
-            if len(members_to_unmute) > 0: await self._unmute(*members_to_unmute)
+                    mute_task.after_loop(partial(self._mute_delete, member))
+                    mute_task.start()
+
+            if len(members_tuple) > 0:
+                await conn.execute(self.muted_table.delete().where(
+                    sa.tuple_(
+                        self.muted_table.c.guild_id, self.muted_table.c.user_id
+                    ).in_(
+                        members_tuple
+                    )
+                ))
 
     # Check if admin
     async def cog_check(self, ctx):
@@ -93,62 +108,74 @@ class Admin(commands.Cog):
         else:
             await ctx.channel.purge(limit=lim, before=ctx.message, bulk=True)
 
-    # Unmute member(s) and remove them from the json list
-    async def _unmute(self, *members):
-        await self.client.db.exec_query(self.muted_table.delete().where(
-            sa.tuple_(
-                self.muted_table.c.guild_id, self.muted_table.c.user_id
-            ).in_(
-                [(member.guild.id, member.id) for member in members]
-            )
-        ))
-        
-        for member in members: 
-            await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
-            if member.voice: await member.move_to(channel = member.voice.channel)
+    # Unmute member and remove them from the json list
+    async def _unmute(self, member : Member):
+        try:
+            del self.muted_members[member]
+        except KeyError:
+            pass
 
+        await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+        if member.voice: await member.move_to(channel = member.voice.channel)
+
+    # Unmute member 
+    @commands.command()
+    async def unmute(self, ctx, member : Member):
+        if member in self.muted_members:
+            await self._unmute(member)
+        else:
+            # Raise error, user is not muted
+            pass
+
+
+    async def _mute_save(self, member : Member, mutetime : timedelta_ext):
+        async with self.client.db.acquire() as conn:
+            await conn.execute(self.muted_table.insert().values(
+                guild_id = member.guild.id, 
+                user_id = member.id, 
+                unmutedate = mutetime.to_datetime_now().to_str()
+            ))
+
+    async def _mute_delete(self, member : Member):
+        async with self.client.db.acquire() as conn:
+            await conn.execute(self.muted_table.delete().where(
+                sa.and_(
+                    self.muted_table.c.guild_id == member.guild.id, 
+                    self.muted_table.c.user_id == member.id
+                )
+            ))
+    
     # Mute member for a given period of time
     @commands.command()
-    async def mute(self, ctx, name, *time):
-        member = None
+    async def mute(self, ctx, member : Member, mutetime : timedelta_ext):
+        if mutetime <= DEFAULT_TIMEDELTA or mutetime > MUTETIME_LIMIT:
+            raise commands.BadArgument("Specify a valid mute time between 0 and {}".format(str(MUTETIME_LIMIT)))
 
-        if len(ctx.message.mentions) > 1:
-            await ctx.send("Only supply 1 user as a parameter")
-            return
+        try:
+            running_task = self.muted_members[member]
+            running_task.stop()
 
-        member = ctx.message.mentions[0] if len(ctx.message.mentions) == 1 else ctx.guild.get_member_named(name)
+            running_task.change_interval(seconds = mutetime.total_seconds())
+            running_task.before_loop(partial(self._mute_save, member, mutetime))
+            running_task.start()
+        except KeyError:
+            mute_task = Task(
+                coro = partial(self._unmute, member), 
+                count = 1, 
+                delay = True,
+                seconds = mutetime.total_seconds()
+            )
+            self.muted_members[member] = mute_task
 
-        if member is None:
-            await ctx.send("Could not find any user named {}".format(name))
-            return
+            mute_task.before_loop(partial(self._mute_save, member, mutetime))
+            mute_task.after_loop(partial(self._mute_delete, member))
+            mute_task.start()
 
-        mutetime = time_h.str_to_delta("".join(time))
+            await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+            if member.voice: await member.move_to(channel = member.voice.channel)
 
-        if mutetime <= time_h.DEFAULT_TIMEDELTA or mutetime > MUTETIME_LIMIT:
-            await ctx.send("Specify a valid mute time between 0 and {}".format(str(MUTETIME_LIMIT)))
-            return
-
-        unmutedate = time_h.date_to_str(time_h.get_current_date() + mutetime)
-
-        # TODO(Fredrico): should we store current mutes, or should we just disable the mute command
-        # if the player is already muted?
-        stmt = sa.dialects.postgresql.insert(self.muted_table).values(
-            guild_id = ctx.guild.id, 
-            user_id = member.id, 
-            unmutedate = unmutedate
-        ).on_conflict_do_update(
-            constraint = self.muted_table.primary_key,
-            set_ = dict(unmutedate = unmutedate)
-        )
-        await self.client.db.exec_query(stmt)
-
-        await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
-        if member.voice: await member.move_to(channel = member.voice.channel)
-        
-        dm = await member.create_dm()
-        await dm.send("You've been muted in {} for time period: {}".format(ctx.guild, str(mutetime)))
-        
-        await async_h.run_coro_in(self._unmute(member), mutetime.total_seconds())
+            dm = await member.create_dm()
+            await dm.send("You've been muted in {} for time period: {}".format(ctx.guild, str(mutetime)))
 
 #
 # SETUP

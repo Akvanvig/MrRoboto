@@ -44,7 +44,7 @@ class PostgresDB:
     def _dump_sql(self, sql, *multiparams, **params):
         self._mock_dump = str(sql.compile(dialect=self._mock_engine.dialect))
 
-    async def startdb(self, *args, **kwargs):
+    async def start(self, *args, **kwargs):
         if not self._wrapped_engine:
             self._wrapped_engine = create_engine(*args, **kwargs)
 
@@ -64,7 +64,7 @@ class PostgresDB:
                         # Table already exist
                         pass
 
-    async def stopdb(self):
+    async def stop(self):
         if self._wrapped_engine: 
             self._wrapped_engine.close()
             await self._wrapped_engine.wait_closed()
@@ -117,12 +117,12 @@ class MrRoboto(commands.Bot):
 #
 
 async def start(client : MrRoboto, conf):
-    await client.db.startdb(**conf['postgresql'])
+    await client.db.start(**conf['postgresql'])
     await client.start(conf['discordToken'], bot=True, reconnect=True)
 
 async def stop(client : MrRoboto):
     await client.logout()
-    await client.db.stopdb()
+    await client.db.stop()
 
 def main():
     # Win32 compatibility for aiopg

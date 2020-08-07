@@ -34,8 +34,14 @@ _REGCOMPILED = re.compile(r"(?P<val>\d+)(?P<unit>[smhdw]?)", flags=re.I)
 
 DEFAULT_TIMEDELTA = timedelta()
 
-# TODO(Fredrico) Add convert classmethod
 class datetime_ext(datetime):
+    @classmethod
+    async def convert(cls, ctx, argument):
+        try:
+            return cls.from_str(argument)
+        except ValueError:
+            raise ArgumentParsingError('Could not parse "{}" to a valid date.'.format(argument))
+
     @classmethod
     def now(cls):
         return super(datetime_ext, cls).now(timezone.utc)

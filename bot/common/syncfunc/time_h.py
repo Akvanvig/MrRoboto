@@ -64,7 +64,7 @@ class timedelta_ext(timedelta):
         return cls(**parsed_time)
 
     def to_datetime_now(self):
-        return timedelta_ext.now() + self
+        return datetime_ext.now() + self
 
 # TODO(Fredrico): 
 # * Add decorator to make it feature complete versus discord.ext.tasks Loop

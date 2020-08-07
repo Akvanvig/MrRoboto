@@ -64,9 +64,12 @@ class timedelta_ext(timedelta):
         return cls(**parsed_time)
 
     def to_datetime_now(self):
-        return timedelta_ext.now(timezone.utc) + self
+        return timedelta_ext.now() + self
 
-# TODO(Fredrico): Add decorator to make it feature complete versus discord.ext.tasks Loop
+# TODO(Fredrico): 
+# * Add decorator to make it feature complete versus discord.ext.tasks Loop
+# * Change delay to wrap a sleep_until coro around before_loop
+# * Update __doc__ strings
 class Task(Loop):
     def __init__(self, coro, seconds = 0, hours = 0, minutes = 0, count = 1, delay = False, reconnect = True, loop = None):
         self.coro = coro

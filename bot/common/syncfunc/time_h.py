@@ -34,6 +34,7 @@ _REGCOMPILED = re.compile(r"(?P<val>\d+)(?P<unit>[smhdw]?)", flags=re.I)
 
 DEFAULT_TIMEDELTA = timedelta()
 
+# TODO(Fredrico): Use native __str__ conversion instead of to_str
 class datetime_ext(datetime):
     @classmethod
     async def convert(cls, ctx, argument):
@@ -68,7 +69,6 @@ class timedelta_ext(timedelta):
 
 # TODO(Fredrico): 
 # * Add decorator to make it feature complete versus discord.ext.tasks Loop
-# * Change delay to wrap a sleep_until coro around before_loop
 # * Update __doc__ strings
 class Task(Loop):
     def __init__(self, coro, seconds = 0, hours = 0, minutes = 0, count = 1, delay = False, reconnect = True, loop = None):
@@ -110,14 +110,15 @@ class Task(Loop):
     async def _loop(self, *args, **kwargs):
         backoff = ExponentialBackoff()
         await self._call_loop_function('before_loop')
+
+        if self._delay_loop:
+            await sleep_until(datetime.now(timezone.utc) + timedelta(seconds=self._sleep))
+
         self._next_iteration = datetime.now(timezone.utc)
 
         try:
-            if self._delay_loop:
-                await sleep_until(self._next_iteration + timedelta(seconds=self._sleep))
-                self._next_iteration = datetime.now(timezone.utc)
-            else:
-                await asyncio.sleep(0) # allows cancelling in before_loop
+            # allows cancelling in before_loop
+            await asyncio.sleep(0)
     
             while True:
                 self._last_iteration = self._next_iteration

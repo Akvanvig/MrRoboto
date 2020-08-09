@@ -130,10 +130,15 @@ class Admin(commands.Cog):
 
     async def _mute_save(self, member : Member, mutetime : timedelta_ext):
         async with self.client.db.acquire() as conn:
-            await conn.execute(self.muted_table.insert().values(
+            unmutedate = mutetime.to_datetime_now().to_str()
+
+            await conn.execute(sa.dialects.postgresql.insert(self.muted_table).values(
                 guild_id = member.guild.id, 
                 user_id = member.id, 
-                unmutedate = mutetime.to_datetime_now().to_str()
+                unmutedate = unmutedate
+                ).on_conflict_do_update(
+                constraint = self.muted_table.primary_key,
+                set_ = dict(unmutedate = unmutedate)
             ))
 
     async def _mute_delete(self, member : Member):

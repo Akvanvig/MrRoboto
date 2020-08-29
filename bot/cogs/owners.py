@@ -4,7 +4,7 @@ Much of the code is taken from: https://github.com/Rapptz/RoboDanny/blob/rewrite
 """
 
 from discord.ext import commands
-from common.syncfunc import config_h
+from common import config_h
 
 #
 # CLASSES

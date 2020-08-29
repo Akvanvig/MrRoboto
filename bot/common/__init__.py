@@ -1,2 +1,1 @@
-from .asyncfunc import async_h
-from .syncfunc import *
+__all__ = ('config_h', 'db', 'json_h', 'time_h')

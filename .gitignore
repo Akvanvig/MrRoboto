@@ -1,2 +1,5 @@
 # Conf files
 **/config/
+
+# Bytecode
+__pycache__/

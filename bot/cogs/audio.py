@@ -15,7 +15,7 @@ Variables
 """
 configPath = os.path.join(os.path.dirname(__file__), '../config/')
 configJsonPath = os.path.join(configPath, 'bot.json')
-conf = getJson(configJsonPath)
+conf = get_json(configJsonPath)
 ffmpeg_options = conf['ffmpeg_options']
 ffmpeg_before_options = conf['ffmpeg_before_options']
 ytdl = youtube_dl.YoutubeDL(conf['ytdlFormatOptions'])
@@ -33,7 +33,7 @@ class SongList():
     def importAudioJSON(self):
         songs = []
         if os.path.isfile(self.audioJsonPath):
-            audioList = getJson(self.audioJsonPath)
+            audioList = get_json(self.audioJsonPath)
             for v in audioList:
                 songs.append(Song(v['name'], v['path'], v['aliases']))
             print('Songlist imported from {}'.format(self.audioJsonPath))
@@ -42,8 +42,8 @@ class SongList():
     def exportAudioJson(self):
         strList = []
         for song in self.songs:
-            strList.append(song.getJson())
-        saveJson(strList, self.audioJsonPath)
+            strList.append(song.get_json())
+        save_json(strList, self.audioJsonPath)
 
     def importAudioFiles(self):
         files = []
@@ -69,7 +69,7 @@ class SongList():
         resultlist = list(list1)
         for song in list2:
             if song not in resultlist:
-                print(song.getJson())
+                print(song.get_json())
                 resultlist.append(song)
 
         print('Songlists have been merged')
@@ -132,7 +132,7 @@ class Song():
         else:
             return False
 
-    def getJson(self):
+    def get_json(self):
         return {"name": self.name, "path": self.filepath, "aliases": self.aliases}
 
     def setAliases(self, aliases):
@@ -325,6 +325,10 @@ class Audio(commands.Cog):
             self.players[ctx.guild.id] = player
 
         return player
+
+    #
+    # COMMANDS
+    #
 
     @commands.command(name='connect', aliases=['join'])
     async def connect(self, ctx, *, channel: discord.VoiceChannel=None):

@@ -36,42 +36,31 @@ class Admin(commands.Cog):
     async def on_ready(self):
         await self._mute_restore()
 
-    # Check if admin
-    async def cog_check(self, ctx):
-        return ctx.channel.permissions_for(ctx.message.author).administrator
+    async def _unmute(self, member : Member):
+        # Unmute on discord
+        try:
+            del self.muted_tasks[member]
+        except KeyError:
+            pass
 
-    # Sudo me' timbers
-    @commands.command()
-    async def sudo(self, ctx):
-        await ctx.send("You are now running with sudo privileges")
+        await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+            
+        if member.voice: 
+            await member.move_to(channel = member.voice.channel)
 
-    # Clear channel messages for bot and command messages
-    @commands.group(
-        name = 'clear', 
-        invoke_without_command = True, 
-        help = "Clears all bot commands and messages in the channel, given a limit parameter.")
-    async def _clear(self, ctx, lim = 30):
-        if lim <= 0 or lim > HISTORY_LIMIT:
-            await ctx.send("Choose a limit between 1 and {}".format(HISTORY_LIMIT))
-        else:
-            botuser = self.client.user
-            prefixes = tuple(self.client.command_prefix)
+        # Delete mute from database
+        await self._mute_delete(member)
 
-            def is_cmd_or_bot(msg):
-                if msg.author == botuser or msg.content.startswith(prefixes): return True
-                return False
+    async def _mute(self, member : Member, mutetime : timedelta_ext):
+        # Save mute to database
+        await self._mute_save(member, mutetime)
 
-            await ctx.channel.purge(limit=lim, check=is_cmd_or_bot, before=ctx.message, bulk=True)
+        # Mute on discord
+        await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+        if member.voice: await member.move_to(channel = member.voice.channel)
 
-    @_clear.command(
-        name = 'all', 
-        description = "Clears all chat messages in the channel, given a limit parameter."
-    )
-    async def _clear_all(self, ctx, lim = 30):
-        if lim <= 0 or lim > HISTORY_LIMIT:
-            await ctx.send("Choose a limit between 1 and {}".format(HISTORY_LIMIT))
-        else:
-            await ctx.channel.purge(limit = lim, before = ctx.message, bulk = True)
+        dm = await member.create_dm()
+        await dm.send("You've been muted in {} for time period: {}".format(member.guild, str(mutetime)))
 
     async def _mute_save(self, member : Member, mutetime : timedelta_ext):
         async with self.client.db.acquire() as conn:
@@ -85,7 +74,6 @@ class Admin(commands.Cog):
                     constraint = self.muted_table.primary_key, 
                     set_ = dict(unmutedate = unmutedate)
             ))
-
     
     async def _mute_delete(self, member : Member):
         async with self.client.db.acquire() as conn:
@@ -105,9 +93,9 @@ class Admin(commands.Cog):
                 member = guild.get_member(row[self.muted_table.c.user_id])
                 unmutedate = datetime_ext.from_str(row[self.muted_table.c.unmutedate])
 
-                # Unmute immediately, and append to delete statement
+                # Unmute immediately
                 if currentdate >= unmutedate:
-                    await self._unmute(member)
+                    asyncio.create_task(self._unmute(member))
                 # Unmute later
                 elif member not in self.muted_tasks:
                     task = Task(
@@ -118,32 +106,13 @@ class Admin(commands.Cog):
                     self.muted_tasks[member] = task
                     task.start()
 
-    async def _mute(self, member : Member, mutetime : timedelta_ext):
-        # Save mute to database
-        await self._mute_save(member, mutetime)
+    #
+    # COMMANDS
+    #
 
-        await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
-        if member.voice: await member.move_to(channel = member.voice.channel)
+    async def cog_check(self, ctx):
+        return ctx.channel.permissions_for(ctx.message.author).administrator
 
-        dm = await member.create_dm()
-        await dm.send("You've been muted in {} for time period: {}".format(member.guild, str(mutetime)))
-
-    async def _unmute(self, member : Member):
-        # Unmute on discord
-        try:
-            del self.muted_tasks[member]
-        except KeyError:
-            pass
-
-        await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
-            
-        if member.voice: 
-            await member.move_to(channel = member.voice.channel)
-
-        # Delete mute from database
-        await self._mute_delete(member)
-
-    # Mute member for a given period of time
     @commands.command()
     async def mute(self, ctx, member : Member, mutetime : timedelta_ext):
         if mutetime <= DEFAULT_TIMEDELTA or mutetime > MUTETIME_LIMIT:
@@ -167,7 +136,6 @@ class Admin(commands.Cog):
         finally:
             task.start()
 
-    # Unmute member 
     @commands.command()
     async def unmute(self, ctx, member : Member):
         try:
@@ -176,6 +144,36 @@ class Admin(commands.Cog):
             await self._unmute(member)
         except KeyError:
             await ctx.send('User "{}" is not muted'.format(member.nick))
+
+    @commands.command()
+    async def sudo(self, ctx):
+        await ctx.send("You are now running with sudo privileges")
+
+    @commands.group(
+        name = 'clear', 
+        invoke_without_command = True, 
+        help = "Clears all bot commands and messages in the channel, given a limit parameter.")
+    async def _clear(self, ctx, lim = 30):
+        if lim <= 0 or lim > HISTORY_LIMIT:
+            await ctx.send("Choose a limit between 1 and {}".format(HISTORY_LIMIT))
+        else:
+            botuser = self.client.user
+            prefixes = tuple(self.client.command_prefix)
+
+            def is_cmd_or_bot(msg):
+                if msg.author == botuser or msg.content.startswith(prefixes): return True
+                return False
+
+            await ctx.channel.purge(limit=lim, check=is_cmd_or_bot, before=ctx.message, bulk=True)
+
+    @_clear.command(
+        name = 'all', 
+        description = "Clears all chat messages in the channel, given a limit parameter.")
+    async def _clear_all(self, ctx, lim = 30):
+        if lim <= 0 or lim > HISTORY_LIMIT:
+            await ctx.send("Choose a limit between 1 and {}".format(HISTORY_LIMIT))
+        else:
+            await ctx.channel.purge(limit = lim, before = ctx.message, bulk = True)
 
 #
 # SETUP

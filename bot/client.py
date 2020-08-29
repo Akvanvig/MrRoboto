@@ -12,7 +12,7 @@ import asyncio
 
 from discord.ext import commands
 from common import config_h
-from common.db import PostgresDB
+from common.db_h import PostgresDB
 
 INITIAL_EXTENSIONS  = ('cogs.admin',
                        'cogs.animations',

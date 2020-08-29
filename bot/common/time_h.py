@@ -6,7 +6,7 @@ import re
 import inspect
 import asyncio
 
-from .db import PostgresDB
+from .db_h import PostgresDB
 from functools import partial
 from datetime import timezone, datetime, timedelta
 from discord.utils import sleep_until
@@ -55,6 +55,10 @@ class datetime_ext(datetime):
         return self.strftime(_DATEFORMAT)
 
     @classmethod
+    def from_str(cls, s : str):
+        return cls.strptime(s, _DATEFORMAT).replace(tzinfo=timezone.utc)
+
+    @classmethod
     async def convert(cls, ctx, argument):
         try:
             return cls.from_str(argument)
@@ -64,10 +68,6 @@ class datetime_ext(datetime):
     @classmethod
     def now(cls):
         return super(datetime_ext, cls).now(timezone.utc)
-
-    @classmethod
-    def from_str(cls, s : str):
-        return cls.strptime(s, _DATEFORMAT).replace(tzinfo=timezone.utc)
 
 class timedelta_ext(timedelta):
     @classmethod
@@ -100,8 +100,31 @@ class Task:
         self.timedelta = timedelta
         self._loop = loop or asyncio.get_event_loop()
         self._task = None
-        self._failed_exc = None
+        self.failed_exc = None
         self._reconnect = reconnect
+
+    async def _start(self):
+        self.failed_exc = None
+
+        try:
+            if self.on_start:
+                await self.on_start()
+
+            await sleep_until(self.timedelta.to_datetime_now())
+
+            while True:
+                try:
+                    await self.on_end()
+                    return
+                except _VALID_EXCEPTIONS as exc:
+                    if not self._reconnect:
+                        raise
+                    await asyncio.sleep(ExponentialBackoff().delay())
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            self.failed_exc = exc
+            raise exc
 
     def cancelled(self):
         if self._task:
@@ -109,7 +132,7 @@ class Task:
         return None
 
     def failed(self):
-        if not self._failed_exc is None:
+        if not self.failed_exc is None:
             return True
         return False
         
@@ -131,26 +154,3 @@ class Task:
                 await self._task
             except asyncio.CancelledError:
                 pass
-
-    async def _start(self):
-        self._failed_exc = None
-
-        try:
-            if self.on_start:
-                await self.on_start()
-
-            await sleep_until(self.timedelta.to_datetime_now())
-
-            while True:
-                try:
-                    await self.on_end()
-                    return
-                except _VALID_EXCEPTIONS as exc:
-                    if not self._reconnect:
-                        raise
-                    await asyncio.sleep(ExponentialBackoff().delay())
-        except asyncio.CancelledError:
-            raise
-        except Exception as exc:
-            self._failed_exc = exc
-            raise exc

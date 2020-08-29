@@ -14,11 +14,13 @@ class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    # Check if owner
+    #
+    # COMMANDS
+    #
+
     async def cog_check(self, ctx):
        return ctx.author.id in self.client.owner_ids
 
-    # Load module
     @commands.command(hidden=True)
     async def load(self, ctx, *, module):
         try:
@@ -28,7 +30,6 @@ class Owners(commands.Cog):
         else:
             await ctx.send('\N{OK HAND SIGN}')
 
-    # Unload module
     @commands.command(hidden=True)
     async def unload(self, ctx, *, module):
         try:
@@ -38,7 +39,6 @@ class Owners(commands.Cog):
         else:
             await ctx.send('\N{OK HAND SIGN}')
 
-    # Reload module
     @commands.command(hidden=True)
     async def reload(self, ctx, *, module):
         try:
@@ -48,7 +48,6 @@ class Owners(commands.Cog):
         else:
             await ctx.send('\N{OK HAND SIGN}')
 
-    # Refresh config
     @commands.command(
         name = 'refreshconf', 
         hidden = True)

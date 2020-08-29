@@ -12,10 +12,13 @@ class Other(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    # Read reminder list from disk on_ready
     @commands.Cog.listener()
     async def on_ready(self):
         pass
+
+    #
+    # COMMANDS
+    #
 
     @commands.command()
     async def latency(self, ctx):

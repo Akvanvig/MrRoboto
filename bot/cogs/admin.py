@@ -63,39 +63,42 @@ class Admin(commands.Cog):
 
             await ctx.channel.purge(limit=lim, check=is_cmd_or_bot, before=ctx.message, bulk=True)
 
-    # Clear ALL channel messages
     @_clear.command(
         name = 'all', 
-        description = "Clears all chat messages in the channel, given a limit parameter.")
+        description = "Clears all chat messages in the channel, given a limit parameter."
+    )
     async def _clear_all(self, ctx, lim = 30):
         if lim <= 0 or lim > HISTORY_LIMIT:
             await ctx.send("Choose a limit between 1 and {}".format(HISTORY_LIMIT))
         else:
-            await ctx.channel.purge(limit=lim, before=ctx.message, bulk=True)
+            await ctx.channel.purge(limit = lim, before = ctx.message, bulk = True)
 
-    # Create save stmt for muted member
-    def _mute_save_stmt(self, member : Member, mutetime : timedelta_ext):
-        return self.muted_table.insert().values(
-            guild_id = member.guild.id, 
-            user_id = member.id, 
-            unmutedate = mutetime.to_datetime_now().to_str()
-        )
+    async def _mute_save(self, member : Member, mutetime : timedelta_ext):
+        async with self.client.db.acquire() as conn:
+            unmutedate = str(mutetime.to_datetime_now())
 
-    # Create delete stmt for muted member
-    def _mute_delete_stmt(self, member : Member):
-        return self.muted_table.delete().where(
-            sa.and_(
-                self.muted_table.c.guild_id == member.guild.id, 
-                self.muted_table.c.user_id == member.id
-            )
-        )
+            await conn.execute(sa.dialects.postgresql.insert(self.muted_table).values(
+                    guild_id = member.guild.id, 
+                    user_id = member.id, 
+                    unmutedate = unmutedate
+                ).on_conflict_do_update(
+                    constraint = self.muted_table.primary_key, 
+                    set_ = dict(unmutedate = unmutedate)
+            ))
 
-    # On_ready restore mutes
+    
+    async def _mute_delete(self, member : Member):
+        async with self.client.db.acquire() as conn:
+            await conn.execute(self.muted_table.delete().where(
+                sa.and_(
+                    self.muted_table.c.guild_id == member.guild.id, 
+                    self.muted_table.c.user_id == member.id
+                )
+            ))
+
     async def _mute_restore(self):
-        pass
-        """async with self.client.db.acquire() as conn:
+        async with self.client.db.acquire() as conn:
             currentdate = datetime_ext.now()
-            member_tuples = []
 
             async for row in conn.execute(self.muted_table.select()):
                 guild = self.client.get_guild(row[self.muted_table.c.guild_id])
@@ -105,71 +108,64 @@ class Admin(commands.Cog):
                 # Unmute immediately, and append to delete statement
                 if currentdate >= unmutedate:
                     await self._unmute(member)
-                    member_tuples.append((guild.id, member.id))
                 # Unmute later
                 elif member not in self.muted_tasks:
-                    self.muted_tasks[member] = Task(
-                        client = self.client,
-                        coro = partial(self._unmute, member),
-                        timedelta = (unmutedate - currentdate),
-                        end_stmt = self._mute_delete_stmt(member)
+                    task = Task(
+                        loop = self.client.loop,
+                        on_end = partial(self._unmute, member),
+                        timedelta = (unmutedate - currentdate)
                     )
+                    self.muted_tasks[member] = task
+                    task.start()
 
-            if len(member_tuples) > 0:
-                await conn.execute(self.muted_table.delete().where(
-                    sa.tuple_(
-                        self.muted_table.c.guild_id, 
-                        self.muted_table.c.user_id
-                    ).in_(
-                        member_tuples
-                    )
-                ))"""
-    
+    async def _mute(self, member : Member, mutetime : timedelta_ext):
+        # Save mute to database
+        await self._mute_save(member, mutetime)
+
+        await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+        if member.voice: await member.move_to(channel = member.voice.channel)
+
+        dm = await member.create_dm()
+        await dm.send("You've been muted in {} for time period: {}".format(member.guild, str(mutetime)))
+
+    async def _unmute(self, member : Member):
+        # Unmute on discord
+        try:
+            del self.muted_tasks[member]
+        except KeyError:
+            pass
+
+        await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
+            
+        if member.voice: 
+            await member.move_to(channel = member.voice.channel)
+
+        # Delete mute from database
+        await self._mute_delete(member)
+
     # Mute member for a given period of time
     @commands.command()
     async def mute(self, ctx, member : Member, mutetime : timedelta_ext):
-        pass
-        """if mutetime <= DEFAULT_TIMEDELTA or mutetime > MUTETIME_LIMIT:
+        if mutetime <= DEFAULT_TIMEDELTA or mutetime > MUTETIME_LIMIT:
             raise commands.BadArgument("Specify a valid mute time between 0 and {}".format(str(MUTETIME_LIMIT)))
 
         try:
-            running_task = self.muted_tasks[member]
-            running_task.stop()
-            await running_task.wait()
+            task = self.muted_tasks[member]
+            task.stop()
+            await task.wait()
             
-            running_task.timedelta = mutetime
-            running_task.start_stmt = self._mute_save_stmt(member, mutetime)
-            running_task.start()
+            task.timedelta = mutetime
+            task.on_start = partial(self._mute_save, member, mutetime)
         except KeyError:
-            self.muted_tasks[member] = Task(
-                client = self.client,
-                coro = partial(self._unmute, member),
-                timedelta = mutetime,
-                start_stmt = self._mute_save_stmt(member, mutetime),
-                end_stmt = self._mute_delete_stmt(member)
+            task = Task(
+                loop = self.client.loop,
+                on_start = partial(self._mute, member, mutetime),
+                on_end = partial(self._unmute, member),
+                timedelta = mutetime
             )
-
-            await member.add_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
-            if member.voice: await member.move_to(channel = member.voice.channel)
-
-            dm = await member.create_dm()
-            await dm.send("You've been muted in {} for time period: {}".format(ctx.guild, str(mutetime)))"""
-
-    async def _unmute(self, member : Member, *, stop_task = False):
-        pass
-        """
-        try:
-            if stop_task:
-                self.muted_tasks[member].stop()
-
-            del self.muted_tasks[member]
-
-            await member.remove_roles(utils.get(member.guild.roles, name = MUTED_ROLE))
-            
-            if member.voice: 
-                await member.move_to(channel = member.voice.channel)
-        except KeyError:
-            raise Exception('User "{}" is not muted'.format(member.nick))"""
+            self.muted_tasks[member] = task
+        finally:
+            task.start()
 
     # Unmute member 
     @commands.command()
@@ -177,7 +173,6 @@ class Admin(commands.Cog):
         try:
             self.muted_tasks[member].stop()
             del self.muted_tasks[member]
-
             await self._unmute(member)
         except KeyError:
             await ctx.send('User "{}" is not muted'.format(member.nick))

@@ -65,6 +65,7 @@ class MrRoboto(commands.Bot):
 
         else:
             print(error.__class__)
+            print(error)
             await ctx.send("Command \'{}\' is not working properly, contact your local developer :)".format(ctx.invoked_with))
 #
 # MAIN

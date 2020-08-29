@@ -50,8 +50,10 @@ _VALID_EXCEPTIONS = (
 
 DEFAULT_TIMEDELTA = timedelta()
 
-# TODO(Fredrico): Use native __str__ conversion instead of to_str
 class datetime_ext(datetime):
+    def __str__(self):
+        return self.strftime(_DATEFORMAT)
+
     @classmethod
     async def convert(cls, ctx, argument):
         try:
@@ -67,9 +69,6 @@ class datetime_ext(datetime):
     def from_str(cls, s : str):
         return cls.strptime(s, _DATEFORMAT).replace(tzinfo=timezone.utc)
 
-    def to_str(self):
-        return self.strftime(_DATEFORMAT)
-
 class timedelta_ext(timedelta):
     @classmethod
     async def convert(cls, ctx, argument):
@@ -83,29 +82,34 @@ class timedelta_ext(timedelta):
     def to_datetime_now(self):
         return datetime_ext.now() + self
 
+# TODO(Fredrico): Improve duplication?
 class Task:
-    def __init__(self, client, coro, timedelta, start_stmt = None, end_stmt = None, *, reconnect = True, start = True):
-        if not (inspect.iscoroutinefunction(coro) or isinstance(coro, partial)):
-            raise TypeError('Expected coro function or partial object, received {0.__name__!r}.'.format(type(coro)))
+    def __init__(self, loop, on_start, on_end , timedelta, *, reconnect = True):
+        if on_start and not (inspect.iscoroutinefunction(on_start) or isinstance(on_start, partial)):
+            raise TypeError('Expected coro function or partial object, received {0.__name__!r}.'.format(type(on_start)))
+
+        # There must be an on_end
+        if not (inspect.iscoroutinefunction(on_end) or isinstance(on_end, partial)):
+            raise TypeError('Expected coro function or partial object, received {0.__name__!r}.'.format(type(on_end)))
 
         if not isinstance(timedelta, timedelta_ext):
             raise TypeError('Expected timedelta_ext object, received {0.__name__!r}.'.format(type(timedelta)))
 
-        self.coro = coro
+        self.on_start = on_start
+        self.on_end = on_end
         self.timedelta = timedelta
-        self.start_stmt = start_stmt
-        self.end_stmt = end_stmt
-        self.failed_exc = False
-        self._client = client
+        self._loop = loop or asyncio.get_event_loop()
+        self._task = None
+        self._failed_exc = None
         self._reconnect = reconnect
-        self._task = self._client.loop.create_task(self._start()) if start else None
 
     def cancelled(self):
         if self._task:
             return self._task.cancelled()
+        return None
 
     def failed(self):
-        if not self.failed_exc is None:
+        if not self._failed_exc is None:
             return True
         return False
         
@@ -113,7 +117,7 @@ class Task:
         if self._task is not None and not self._task.done():            
             raise RuntimeError('Task is already launched and is not completed.')
 
-        self._task = asyncio.create_task(self._start())
+        self._task = self._loop.create_task(self._start())
         
         return self._task
 
@@ -129,27 +133,24 @@ class Task:
                 pass
 
     async def _start(self):
-        self.failed_exc = None
+        self._failed_exc = None
 
         try:
-            await self._run_stmt(self.start_stmt)
-            
+            if self.on_start:
+                await self.on_start()
+
             await sleep_until(self.timedelta.to_datetime_now())
-            try:
-                await self.coro()
-            except _VALID_EXCEPTIONS as exc:
-                if not self._reconnect:
-                    raise
-                await asyncio.sleep(ExponentialBackoff().delay())
+
+            while True:
+                try:
+                    await self.on_end()
+                    return
+                except _VALID_EXCEPTIONS as exc:
+                    if not self._reconnect:
+                        raise
+                    await asyncio.sleep(ExponentialBackoff().delay())
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            self.failed_exc = exc
+            self._failed_exc = exc
             raise exc
-        finally:
-            await self._run_stmt(self.end_stmt)
-
-    async def _run_stmt(self, stmt):
-        if not stmt is None:
-            async with self._client.db.acquire() as conn:
-                await conn.execute(stmt)

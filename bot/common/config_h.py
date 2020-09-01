@@ -5,29 +5,31 @@ from os.path import dirname, join
 # PRIVATE INTERFACE
 #
 
-_FILE_DIR = dirname(__file__)
+def _read_from_disk():
+    try:
+        _dir = dirname(__file__)
+           
+        # Read
+        bot_json = get_json(join(_dir, "../config/bot.json"))
+        secrets_json = get_json(join(_dir, "../config/secrets.json"))
 
-_config_cache = None
+        # Merge
+        return {**bot_json, **secrets_json}
+    except IOError as e:
+        if e.errno == 2: 
+            print("Config files are missing")
+        quit()
+
+_config_cache = _read_from_disk()
 
 #
 # PUBLIC INTERFACE
 #
 
-# TODO(Fredrico): Separate into different functions
-
-# Set force_read to True to read from disk
-def get(*, force_read = False):
+def get(*, from_disk = False):
     global _config_cache
 
-    if force_read or _config_cache == None:
-        try:
-            # Read and merge
-            bot_json = get_json(join(_FILE_DIR, "../config/bot.json"))
-            secrets_json = get_json(join(_FILE_DIR, "../config/secrets.json"))
-
-            _config_cache = {**bot_json, **secrets_json}
-        except IOError as e:
-            if e.errno == 2: print("Config files are missing")
-            quit()
-
-    return _config_cache
+    if from_disk:
+        _config_cache = _read_from_disk()
+        
+    return _config_cache 

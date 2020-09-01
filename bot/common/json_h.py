@@ -11,7 +11,7 @@ def save_json(obj, path):
 
 def get_json(path):
     file = open(path, 'r')
-    jsonObj = json.load(file)
+    json_obj = json.load(file)
     file.close()
 
-    return jsonObj
+    return json_obj

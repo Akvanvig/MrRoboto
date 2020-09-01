@@ -52,7 +52,7 @@ class Owners(commands.Cog):
         name = 'refreshconf', 
         hidden = True)
     async def refresh_conf(self, ctx):
-        conf = config_h.get(force_read = True)
+        conf = config_h.get(from_disk = True)
 
         self.client.command_prefix = conf['commandPrefix']
         self.client.owner_ids= conf['ownerIds']

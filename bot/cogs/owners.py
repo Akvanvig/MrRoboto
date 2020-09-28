@@ -2,9 +2,12 @@
 """
 Much of the code is taken from: https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
 """
+import subprocess
+import sys
 
-from discord.ext import commands
+from discord.ext import commands, tasks
 from common import config_h
+from common.time_h import datetime_ext
 
 #
 # CLASSES
@@ -13,6 +16,46 @@ from common import config_h
 class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.outdated_reminder.start()
+
+    @tasks.loop(hours=168.0)
+    async def outdated_reminder(self):
+        print("Checking for outdated components...")
+
+        def blocking_process():
+            cmd = [sys.executable, "-m", "pip", "list", "--outdated"]
+            return subprocess.check_output(cmd, stderr = subprocess.STDOUT).decode(sys.stdout.encoding).strip()
+
+        future = self.client.loop.run_in_executor(None, blocking_process)
+        await future
+
+        try:
+            output = future.result()
+
+            for owner_id in self.client.owner_ids:
+                user = await self.client.fetch_user(owner_id)
+                dm = await user.create_dm()
+
+                await dm.send("--- {} ---\n"
+                              "UPDATE CHECK\n"
+                              "---------------------------\n"
+                              "{}".format(datetime_ext.now(), output))
+
+            print("Finished the outdated component check...")
+
+        except subprocess.CalledProcessError as e:
+            output = e.output
+
+            print("Failed to check for outdated components:")
+
+        finally:
+            print(output)
+        
+
+    @outdated_reminder.before_loop
+    async def before_reminder(self):
+        await self.client.wait_until_ready()
+        
 
     #
     # COMMANDS

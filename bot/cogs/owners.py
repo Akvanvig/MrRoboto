@@ -41,7 +41,7 @@ class Owners(commands.Cog):
             update_content = []
 
             while len(output) > 0:
-                tmp_output = output[:MSG_LIMIT]
+                tmp_output = output[:MSG_LIMIT - 6]
                 output = output[len(tmp_output):]
                 update_content.append("```{}```".format(tmp_output))
 
@@ -53,16 +53,15 @@ class Owners(commands.Cog):
                 for part in update_content:
                     await dm.send(part) 
 
-            output = update_content
+            print(update_content)
             print("Finished the outdated component check...")
 
-        except Exception as e:
-            output = e.output
+        except subprocess.CalledProcessError as e:
+            print(e.output)
+            print("Process error, Failed to check for outdated components...")
 
-            print("Failed to check for outdated components:")
-
-        finally:
-            print(output)
+        except Exception:
+            print("Fatal error, Failed to check for outdated components...")
         
 
     @outdated_reminder.before_loop

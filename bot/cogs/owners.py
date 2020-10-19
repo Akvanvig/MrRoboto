@@ -36,10 +36,10 @@ class Owners(commands.Cog):
                 user = await self.client.fetch_user(owner_id)
                 dm = await user.create_dm()
 
-                await dm.send("--- {} ---\n"
+                await dm.send("```--- {} ---\n"
                               "UPDATE CHECK\n"
                               "---------------------------\n"
-                              "{}".format(datetime_ext.now(), output))
+                              "{}```".format(datetime_ext.now(), output))
 
             print("Finished the outdated component check...")
 

@@ -30,7 +30,7 @@ _UNITS = {
     'd':'days', 
     'w':'weeks'
 }
-_REGCOMPILED = re.compile(r"(?P<val>\d+)(?P<unit>[smhdw]?)", flags=re.I)
+_TIMEREG = re.compile(r"(?P<val>\d+)(?P<unit>[smhdw]?)", flags=re.I)
 
 _VALID_EXCEPTIONS = (
     OSError,
@@ -72,7 +72,7 @@ class datetime_ext(datetime):
 class timedelta_ext(timedelta):
     @classmethod
     async def convert(cls, ctx, argument):
-        parsed_time = {_UNITS.get(m.group('unit').lower(), 'seconds'): int(m.group('val')) for m in _REGCOMPILED.finditer(argument)}
+        parsed_time = {_UNITS.get(m.group('unit').lower(), 'seconds'): int(m.group('val')) for m in _TIMEREG.finditer(argument)}
 
         if not parsed_time:
             raise ArgumentParsingError('Could not parse "{}" to a valid time.'.format(argument))

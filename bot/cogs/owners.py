@@ -10,6 +10,12 @@ from common import config_h
 from common.time_h import datetime_ext
 
 #
+#
+#
+
+MSG_LIMIT = 2000
+
+#
 # CLASSES
 #
 
@@ -31,19 +37,26 @@ class Owners(commands.Cog):
 
         try:
             output = future.result()
+            update_str = "--- {} ---\nUPDATE CHECK".format(datetime_ext.now())
+            update_content = []
+
+            while len(output) > 0:
+                tmp_output = output[:MSG_LIMIT]
+                output = output[len(tmp_output):]
+                update_content.append("```{}```".format(tmp_output))
 
             for owner_id in self.client.owner_ids:
                 user = await self.client.fetch_user(owner_id)
                 dm = await user.create_dm()
 
-                await dm.send("```--- {} ---\n"
-                              "UPDATE CHECK\n"
-                              "---------------------------\n"
-                              "{}```".format(datetime_ext.now(), output))
+                await dm.send(update_str)
+                for part in update_content:
+                    await dm.send(part) 
 
+            output = update_content
             print("Finished the outdated component check...")
 
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             output = e.output
 
             print("Failed to check for outdated components:")

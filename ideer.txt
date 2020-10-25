@@ -26,3 +26,6 @@ Integrate bring/postnord api to bot
 Create Container deployment config files for Kubernetes
 
 Create ticketing system for bot
+
+Reddit module:
+        counting upvotes / downvotes

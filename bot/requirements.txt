@@ -1,4 +1,5 @@
 discord.py[voice]
+websockets
 youtube-dl
 psycopg2
 sqlalchemy

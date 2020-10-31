@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roboto-deployment
+  namespace: discord-bot-py
+  labels:
+    app: roboto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: roboto
+  template:
+    metadata:
+      labels:
+        app: roboto
+    spec:
+      containers:
+      - name: roboto
+        image: 192.168.10.5:5000/discord-bot-py:latest
+        command: ["/bin/bash"]
+        volumeMounts:
+          - name: config
+            mountPath: Discord-bot-py/config
+
+      volumes:
+        - name: config
+          secret:
+            secretName: discord-py-secrets
+      

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roboto-deployment
+  namespace: discord-bot-py
+  labels:
+    app: roboto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: roboto
+  template:
+    metadata:
+      labels:
+        app: roboto
+    spec:
+      containers:
+      - name: roboto
+        image: docker.pkg.github.com/akvanvig/discord-bot-py/discord-bot-py:latest
+        volumeMounts:
+          - name: config
+            mountPath: Discord-bot-py/config
+      imagePullSecrets:
+      - name: github-secret
+
+      volumes:
+        - name: config
+          secret:
+            secretName: discord-py-secrets

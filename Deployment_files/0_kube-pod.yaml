@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: roboto-test-pod
+  namespace: discord-bot-py
+  labels:
+    app: roboto
+spec:
+  containers:
+  - name: roboto
+    image: 192.168.10.5:5000/discord-bot-py:latest
+    command: ["python3", "-m", "http.server", "80"]
+
+    volumeMounts:
+      - name: config
+        mountPath: Discord-bot-py/config/bot.json
+        subPath: bot.json
+        readOnly: true
+      - name: secrets
+        mountPath: Discord-bot-py/config/secrets.json
+        subPath: secrets.json
+        readOnly: true
+
+  volumes:
+    - name: config
+      configMap:
+        name: bot-config
+    - name: secrets
+      secret:
+        secretName: discord-py-secrets
+
+  restartPolicy: Never

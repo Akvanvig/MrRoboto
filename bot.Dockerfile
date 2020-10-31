@@ -1,5 +1,6 @@
 ARG ARCH=
-FROM ${ARCH}/python:3.8-buster
+FROM ${ARCH}/python:3.8-slim-buster
+#FROM ${ARCH}/python:3.8-buster
 
 RUN apt update -y \
 && apt upgrade -y \

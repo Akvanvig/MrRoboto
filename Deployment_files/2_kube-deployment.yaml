@@ -32,7 +32,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: bot-config
+            name: discord-py-config
         - name: secrets
           secret:
             secretName: discord-py-secrets

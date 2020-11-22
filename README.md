@@ -17,6 +17,7 @@
   - kubectl create configmap bot-config --from-file=/config/bot.json
 2. Generate the secrets from file
   - kubectl create secret generic gen-secrets --from-file=/config/secrets.json
+3. Set up nfs share for any audiofiles and modify 2_kube-storage file with correct fileshare info
 3. Deploy
   - TODO
 

@@ -1,6 +1,6 @@
 ARG ARCH=
 FROM ${ARCH}/python:3.8-slim-buster
-LABEL org.opencontainers.image.source https://github.com/Akvanvig/discord-bot-py
+LABEL org.opencontainers.image.source https://github.com/Akvanvig/discord-bot-py_no-audio
 #FROM ${ARCH}/python:3.8-buster
 
 RUN apt update -y \
@@ -10,7 +10,10 @@ RUN apt update -y \
 && apt install python3-pip -y
 
 WORKDIR /Discord-bot-py
-COPY /bot .
+COPY /bot/cogs ./cogs
+COPY /bot/common ./common
+COPY /bot/client.py ./client.py
+COPY /bot/requirements.txt ./requirements.txt
 
 RUN python3 -m pip install -r /Discord-bot-py/requirements.txt
 

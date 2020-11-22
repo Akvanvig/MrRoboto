@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: roboto
-        image: 192.168.10.5:5000/discord-bot-py:latest
+        image: ghcr.io/akvanvig/discord-bot-py_no-audio:latest
         command: ["python", "client.py"]
         volumeMounts:
           - name: config
@@ -28,6 +28,8 @@ spec:
             mountPath: Discord-bot-py/config/secrets.json
             subPath: secrets.json
             readOnly: true
+          - name: audiofiles
+            mountPath: Discord-bot-py/bot/media
 
       volumes:
         - name: config
@@ -36,3 +38,6 @@ spec:
         - name: secrets
           secret:
             secretName: discord-py-secrets
+        - name: audiofiles
+          persistentVolumeClaim:
+            claimName: nfs-robotoaudiofiles

@@ -6,8 +6,6 @@ metadata:
   labels:
     app: roboto
 spec:
-  imagePullSecrets:
-  - name: regcred
   containers:
   - name: roboto
     image: ghcr.io/akvanvig/discord-bot-py_no-audio:latest

@@ -14,12 +14,12 @@
 ### Kubernetes:
 
 1. Generate the configmap from file
-  - kubectl create configmap bot-config --from-file=/config/bot.json
+  - kubectl create configmap discord-py-config -n discord-bot-py --from-file=./config/bot.json
 2. Generate the secrets from file
-  - kubectl create secret generic gen-secrets --from-file=/config/secrets.json
+  - kubectl create secret generic discord-py-secrets -n discord-bot-py --from-file=./config/secrets.json
 3. Set up nfs share for any audiofiles and modify 2_kube-storage file with correct fileshare info
 3. Deploy
-  - TODO
+  - kubectl apply -f ./Deployment_files/
 
 ### Local:
 

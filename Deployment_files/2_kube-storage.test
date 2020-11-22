@@ -21,7 +21,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nfs-robotoaudiofiles
+  name: nfs-robotoaudiofiles-claim
   namespace: discord-bot-py
   labels:
     app: roboto
@@ -47,3 +47,19 @@ spec:
     path: /mnt/disk1/audiofiles
     server: 192.168.10.6
     readOnly: false
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-robotopostgres-claim
+  namespace: discord-bot-py
+  labels:
+    app: roboto
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi

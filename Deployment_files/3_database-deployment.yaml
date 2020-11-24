@@ -22,7 +22,7 @@ spec:
             - containerPort: 5432
           envFrom:
             - configMapRef:
-                name: postgres-config
+                name: robotodb-config
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgredb

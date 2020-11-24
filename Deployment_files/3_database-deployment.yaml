@@ -7,6 +7,9 @@ metadata:
     app: roboto-postgres
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: roboto-postgres
   template:
     metadata:
       labels:

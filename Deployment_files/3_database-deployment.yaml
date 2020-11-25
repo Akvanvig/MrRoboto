@@ -17,12 +17,12 @@ spec:
     spec:
       containers:
         - name: roboto-postgres
-          image: postgres:10.4
+          image: postgres
           ports:
             - containerPort: 5432
           envFrom:
-            - configMapRef:
-                name: robotodb-config
+            - secretRef:
+                name: robotodb-secrets
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgredb

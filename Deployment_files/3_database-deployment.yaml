@@ -44,4 +44,4 @@ spec:
   - port: 5432
     protocol: TCP
   selector:
-    run: roboto-postgres
+    app: roboto-postgres

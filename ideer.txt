@@ -32,3 +32,6 @@ Reddit module:
 
 Finn.no integration
     Fetch finn.no listings using querys to mr. roboto
+
+Weather forecast, integration with yr.no API
+    

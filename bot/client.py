@@ -8,28 +8,27 @@ __author__ = "Anders & Fredrico"
 
 import os
 import sys
-import logging
-import config
 import asyncio
 
 from discord.ext import commands
+from common import config_h
+from common.db_h import PostgresDB
 
-logging.basicConfig(
-    level=logging.WARNING,
-    format="%(asctime)s: %(levelname)s: %(message)s"
-)
-
-INITIAL_EXTENSIONS  = ['cogs.admin',
+INITIAL_EXTENSIONS  = ('cogs.admin',
                        'cogs.animations',
                        'cogs.audio',
                        'cogs.commands',
-                       'cogs.owners']
+                       'cogs.owners')
 
 #
 # CLASSES
 #
 
 class MrRoboto(commands.Bot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.db = PostgresDB()
+
     async def on_ready(self):
         print('Logged in as')
         print(self.user.name)
@@ -37,14 +36,14 @@ class MrRoboto(commands.Bot):
         print('------')
 
     async def on_command(self, ctx):
-        logging.info(ctx.author.name+": "+ctx.message.content)
+        pass
 
     async def on_message(self, message):
-        if message.author != client.user:
+        if message.author != self.user:
             print(message.author.name+": "+message.content)
-        await client.process_commands(message)
+        await self.process_commands(message)
 
-
+    # TODO(Fredrico/Anders): Try to keep errors local on a per command basis
     async def on_command_error(self, ctx, error):
         # Return if handled by local error handler
         if hasattr(ctx.command, "on_error"): return
@@ -66,23 +65,43 @@ class MrRoboto(commands.Bot):
 
         else:
             print(error.__class__)
+            print(error)
             await ctx.send("Command \'{}\' is not working properly, contact your local developer :)".format(ctx.invoked_with))
 #
 # MAIN
 #
 
-conf = config.get()
+async def start(client : MrRoboto, conf):
+    await client.db.start(**conf['postgresql'])
+    await client.start(conf['discordToken'], bot=True, reconnect=True)
 
-# Win32 compatibility for aiopg
-if sys.platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+async def stop(client : MrRoboto):
+    await client.logout()
+    await client.db.stop()
 
-if not os.path.exists('state'):
-    os.makedirs('state')
+def main():
+    # Win32 compatibility for aiopg
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-client = MrRoboto(command_prefix = conf['commandPrefix'], case_insensitive = True, owner_ids = conf['ownerIds'])
+    loop = asyncio.get_event_loop()
+    conf = config_h.get()
 
-for extension in INITIAL_EXTENSIONS:
-    client.load_extension(extension)
+    client = MrRoboto(
+        loop = loop, 
+        command_prefix = conf['commandPrefix'], 
+        case_insensitive = True, 
+        owner_ids = conf['ownerIds']
+    )
 
-client.run(conf['discordToken'], bot=True, reconnect=True)
+    for extension in INITIAL_EXTENSIONS:
+        client.load_extension(extension)
+
+    try:
+        loop.run_until_complete(start(client, conf))
+    except KeyboardInterrupt:
+        loop.run_until_complete(stop(client))
+    finally:
+        loop.close()
+
+main()

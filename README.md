@@ -1,19 +1,26 @@
 # Discord-bot-py
 
 ## Requirements:
+* Python3
 * Discord Auth-token
 
 ## Installation:
-1. Install Python
-  - **Windows**: Install Python >= 3.8 on the machine
-  - **Linux**: sudo apt install libffi-dev libnacl-dev libpq-dev python3-dev
-2. Install pipenv
-  - python3 -m pip install -U pipenv
-3. Install requirements from pipfile
-  - **User**: python3 -m pipenv install
-  - **Dev**: python3 -m pipenv install --dev
-4. Grab latest ffmpeg
-  - python3 -m pipenv run dlreqs
 
-## Running the bot:
-python3 -m pipenv run bot
+1. Run quickstart.py
+  - **Windows** python quickstart.py
+  - **Linux** sudo python3 quickstart.py
+2. Follow the instructions for whichever setup you are using
+
+### Kubernetes:
+
+1. Generate the configmap from file
+  - kubectl create configmap discord-py-config -n discord-bot-py --from-file=./config/bot.json
+2. Generate the secrets from file
+  - kubectl create secret generic discord-py-secrets -n discord-bot-py --from-file=./config/secrets.json
+3. Set up nfs share for any audiofiles and modify 2_kube-storage file with correct fileshare info
+3. Deploy
+  - kubectl apply -f ./Deployment_files/
+
+### Local:
+
+TODO

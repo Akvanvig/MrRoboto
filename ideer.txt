@@ -29,3 +29,6 @@ Create ticketing system for bot
 
 Reddit module:
         counting upvotes / downvotes
+
+Finn.no integration
+    Fetch finn.no listings using querys to mr. roboto

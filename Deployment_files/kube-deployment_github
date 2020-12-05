@@ -8,20 +8,20 @@ metadata:
 spec:
   containers:
   - name: roboto
-    image: ghcr.io/akvanvig/discord-bot-py_no-audio:latest
+    image: ghcr.io/akvanvig/mrroboto_no-audio:latest
     command: ["python3", "-m", "http.server", "80"]
 
     volumeMounts:
       - name: config
-        mountPath: Discord-bot-py/config/bot.json
+        mountPath: MrRoboto/config/bot.json
         subPath: bot.json
         readOnly: true
       - name: secrets
-        mountPath: Discord-bot-py/config/secrets.json
+        mountPath: MrRoboto/config/secrets.json
         subPath: secrets.json
         readOnly: true
       - name: audiofiles
-        mountPath: Discord-bot-py/bot/media
+        mountPath: MrRoboto/bot/media
 
   volumes:
     - name: config

@@ -277,7 +277,7 @@ class Audio(commands.Cog):
     __slots__ = ('client', 'players')
 
     def __init__(self, client):
-        audiofilesPath = './media/audio/'
+        audiofilesPath = '../media/'
         audioJsonPath = '{}audio.json'.format(configPath)
 
         self.client = client

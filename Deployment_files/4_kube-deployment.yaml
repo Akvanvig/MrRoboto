@@ -29,7 +29,7 @@ spec:
             subPath: secrets.json
             readOnly: true
           - name: audiofiles
-            mountPath: MrRoboto/bot/media
+            mountPath: MrRoboto/media
 
       volumes:
         - name: config

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: nfs-robotoaudiofiles
-  namespace: discord-bot-py
+  namespace: roboto
   labels:
     app: roboto
 spec:
@@ -22,7 +22,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nfs-robotoaudiofiles-claim
-  namespace: discord-bot-py
+  namespace: roboto
   labels:
     app: roboto
 spec:
@@ -38,7 +38,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: nfs-robotopostgres
-  namespace: discord-bot-py
+  namespace: roboto
   labels:
     app: roboto-postgres
 spec:
@@ -58,7 +58,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nfs-robotopostgres-claim
-  namespace: discord-bot-py
+  namespace: roboto
   labels:
     app: roboto-postgres
 spec:

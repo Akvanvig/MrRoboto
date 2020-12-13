@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: roboto-networkpolicy
-  namespace: discord-bot-py
+  namespace: roboto
 spec:
   podSelector:
     matchLabels:
@@ -16,7 +16,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: robotodb-networkpolicy
-  namespace: discord-bot-py
+  namespace: roboto
 spec:
   podSelector:
     matchLabels:

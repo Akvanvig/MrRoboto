@@ -10,9 +10,9 @@ RUN apt-get update -y \
 && apt-get install python3-pip -y
 
 WORKDIR /MrRoboto
-COPY /bot/cogs ./cogs
-COPY /bot/common ./common
-COPY /bot/client.py ./client.py
+COPY /bot/cogs ./bot/cogs
+COPY /bot/common ./bot/common
+COPY /bot/client.py ./bot/client.py
 COPY /bot/requirements.txt ./requirements.txt
 
 RUN python3 -m pip install -r /MrRoboto/requirements.txt

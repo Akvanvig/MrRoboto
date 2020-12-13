@@ -20,18 +20,7 @@ APT_PACKAGES = (
     'ffmpeg'
 )
 
-EXAMPLE_SECRETS = {
-    'discordToken': 'fdjkakjdfefehsabh93,.3mejnfe',
-    'ownerIds': [],
-    'postgresql': {
-        'user': 'test',
-        'database': 'testdb',
-        'host': 'localhost',
-        'password': 'password'
-    }
-}
-
-EXAMPLE_CONFIG = {
+EXAMPLE_BOT_CONFIG = {
     'commandPrefix': '?', 
     'ytdlFormatOptions': {
         'format': 'bestaudio/best',
@@ -49,6 +38,54 @@ EXAMPLE_CONFIG = {
     }, 
     "ffmpeg_options": "-vn",
     "ffmpeg_before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
+}
+
+EXAMPLE_BOT_SECRETS = {
+    'discordToken': 'fdjkakjdfefehsabh93,.3mejnfe',
+    'ownerIds': [],
+    'postgresql': {
+        'user': 'postgres',
+        'database': 'postgres',
+        'host': 'localhost',
+        'password': 'password'
+    }
+}
+
+KUBE_BOT_CONFIG = {
+    'apiVersion': 'v1',
+    'kind': 'ConfigMap',
+    'metadata': {
+        'name': 'robotobot-config',
+        'namespace': 'roboto'
+    },
+    'data': EXAMPLE_BOT_CONFIG
+}
+
+KUBE_BOT_SECRETS = {
+    'apiVersion': 'v1',
+    'kind': 'Secret',
+    'type': 'Opaque',
+    'metadata': {
+        'name': 'robotobot-secrets',
+        'namespace': 'roboto'
+    },
+    'data': EXAMPLE_BOT_SECRETS
+}
+
+KUBE_DB_SECRETS = {
+    'apiVersion': 'v1',
+    'kind': 'Secret',
+    'type': 'Opaque',
+    'metadata': {
+        'name': 'robotodb-secrets',
+        'namespace': 'roboto',
+        'labels': {
+            'app': 'roboto-postgres' 
+        }
+    },
+    'data': {
+        'POSTGRES_PASSWORD': 'password'
+    }
 }
 
 #
@@ -170,17 +207,17 @@ def generate_configs(*, local : bool):
     print("\n[GENERATING CONFIGS]")
 
     try:
-        # Local
-        if local:
-            path = os.path.join(FILE_DIR, "bot/config/")
-        # Kubernetes
-        else:
-            path = os.path.join(FILE_DIR, "config/")
+        path = os.path.join(FILE_DIR, "config/")
 
         if not os.path.exists(path): os.makedirs(path)
 
-        create_file_at(EXAMPLE_SECRETS, path, "secrets.json")
-        create_file_at(EXAMPLE_CONFIG, path, "bot.json")
+        if local:
+            create_file_at(EXAMPLE_BOT_CONFIG, path, "bot_config.json")
+            create_file_at(EXAMPLE_BOT_SECRETS, path, "bot_secrets.json")
+        else:
+            create_file_at(KUBE_BOT_CONFIG, path, "bot_config.json")
+            create_file_at(KUBE_BOT_SECRETS, path, "bot_secrets.json")
+            create_file_at(KUBE_DB_SECRETS, path, "db_secrets.json")
 
     except IOError as e:
         print("...Error, failed to generate configs")

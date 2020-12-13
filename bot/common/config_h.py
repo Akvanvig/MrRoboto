@@ -7,14 +7,14 @@ from os.path import dirname, join
 
 def _read_from_disk():
     try:
-        _dir = dirname(__file__)
+        dir_ = dirname(__file__)
            
         # Read
-        bot_json = get_json(join(_dir, "../config/bot.json"))
-        secrets_json = get_json(join(_dir, "../config/secrets.json"))
+        bot_config = get_json(join(dir_, "../../config/bot_config.json"))
+        bot_secrets = get_json(join(dir_, "../../config/bot_secrets.json"))
 
         # Merge
-        return {**bot_json, **secrets_json}
+        return {**bot_config, **bot_secrets}
     except IOError as e:
         if e.errno == 2: 
             print("Config files are missing")

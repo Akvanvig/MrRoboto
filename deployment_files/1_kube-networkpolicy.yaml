@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: roboto-networkpolicy
+  namespace: discord-bot-py
+spec:
+  podSelector:
+    matchLabels:
+      app: roboto
+  policyTypes:
+  - Egress
+  egress:
+  - {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: robotodb-networkpolicy
+  namespace: discord-bot-py
+spec:
+  podSelector:
+    matchLabels:
+      app: roboto-postgres
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: roboto
+    ports:
+    - protocol: TCP
+      port: 5432
+  egress: []

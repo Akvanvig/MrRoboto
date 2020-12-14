@@ -10,6 +10,7 @@ def save_json(obj, path):
     file.close()
 
 def get_json(path):
+    print("Json path: "+path)
     file = open(path, 'r')
     json_obj = json.load(file)
     file.close()

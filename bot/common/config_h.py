@@ -2,18 +2,20 @@ from .json_h import get_json
 from os.path import dirname, abspath, join
 
 #
-# PRIVATE INTERFACE
+# GLOBAL
+#
+
+CONFIG_PATH = abspath(join(__file__ , "../../../config"))
+
+#
+# PRIVATE
 #
 
 def _read_from_disk():
     try:
-        dir_ = abspath(join(__file__ , "../../.."))
-        
-        print("Reading config from: "+dir_)
-
         # Read
-        bot_config = get_json(join(dir_, "config/bot_config.json"))
-        bot_secrets = get_json(join(dir_, "config/bot_secrets.json"))
+        bot_config = get_json(join(CONFIG_PATH, "bot_config.json"))
+        bot_secrets = get_json(join(CONFIG_PATH, "bot_secrets.json"))
 
         # Merge
         return {**bot_config, **bot_secrets}
@@ -25,7 +27,7 @@ def _read_from_disk():
 _config_cache = _read_from_disk()
 
 #
-# PUBLIC INTERFACE
+# PUBLIC
 #
 
 def get(*, from_disk = False):

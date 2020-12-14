@@ -8,14 +8,13 @@ import discord
 from async_timeout import timeout
 from functools import partial
 from common.json_h import *
+from common import config_h
 from discord.ext import commands
 
 """
 Variables
 """
-configPath = os.path.join(os.path.dirname(__file__), '../config/')
-configJsonPath = os.path.join(configPath, 'bot.json')
-conf = get_json(configJsonPath)
+conf = config_h.get()
 ffmpeg_options = conf['ffmpeg_options']
 ffmpeg_before_options = conf['ffmpeg_before_options']
 ytdl = youtube_dl.YoutubeDL(conf['ytdlFormatOptions'])
@@ -277,8 +276,8 @@ class Audio(commands.Cog):
     __slots__ = ('client', 'players')
 
     def __init__(self, client):
-        audiofilesPath = '../media/'
-        audioJsonPath = '{}audio.json'.format(configPath)
+        audiofilesPath = '../../media/'
+        audioJsonPath = os.path.join(config_h.CONFIG_PATH, 'audio.json')
 
         self.client = client
         self.players = {}

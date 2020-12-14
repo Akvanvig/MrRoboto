@@ -7,7 +7,7 @@ from os.path import dirname, abspath, join
 
 def _read_from_disk():
     try:
-        dir_ = abspath(join(__file__ , "../.."))
+        dir_ = abspath(join(__file__ , "../../.."))
         
         print("Reading config from: "+dir_)
 

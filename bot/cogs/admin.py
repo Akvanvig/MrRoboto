@@ -175,6 +175,8 @@ class Admin(commands.Cog):
         else:
             await ctx.channel.purge(limit = lim, before = ctx.message, bulk = True)
 
+
+
 #
 # SETUP
 #

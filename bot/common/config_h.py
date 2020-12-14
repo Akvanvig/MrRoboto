@@ -1,5 +1,5 @@
 from .json_h import get_json
-from os.path import dirname, join
+from os.path import dirname, abspath, join
 
 #
 # PRIVATE INTERFACE
@@ -7,11 +7,13 @@ from os.path import dirname, join
 
 def _read_from_disk():
     try:
-        dir_ = dirname(__file__)
-           
+        dir_ = abspath(join(__file__ , "../.."))
+        
+        print("Reading config from: "+dir_)
+
         # Read
-        bot_config = get_json(join(dir_, "../../config/bot_config.json"))
-        bot_secrets = get_json(join(dir_, "../../config/bot_secrets.json"))
+        bot_config = get_json(join(dir_, "config/bot_config.json"))
+        bot_secrets = get_json(join(dir_, "config/bot_secrets.json"))
 
         # Merge
         return {**bot_config, **bot_secrets}

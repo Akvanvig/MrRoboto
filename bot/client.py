@@ -14,11 +14,13 @@ from discord.ext import commands
 from common import config_h
 from common.db_h import PostgresDB
 
-INITIAL_EXTENSIONS  = ('cogs.admin',
-                       'cogs.animations',
-                       'cogs.audio',
-                       'cogs.commands',
-                       'cogs.owners')
+Extensions = [
+    'cogs.admin',
+    'cogs.animations',
+    'cogs.audio',
+    'cogs.commands',
+    'cogs.owners'
+]
 
 #
 # CLASSES
@@ -47,7 +49,7 @@ class MrRoboto(commands.Bot):
     async def on_command_error(self, ctx, error):
         # Return if handled by local error handler
         if hasattr(ctx.command, "on_error"): return
-        # Else
+
         if isinstance(error, commands.CommandInvokeError):
             error = error.original
 
@@ -94,7 +96,7 @@ def main():
         owner_ids = conf['ownerIds']
     )
 
-    for extension in INITIAL_EXTENSIONS:
+    for extension in Extensions:
         client.load_extension(extension)
 
     try:

@@ -1,7 +1,4 @@
 
-"""
-Much of the code is taken from: https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py
-"""
 import subprocess
 import sys
 

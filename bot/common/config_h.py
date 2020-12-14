@@ -12,8 +12,8 @@ def _read_from_disk():
         print("Reading config from: "+dir_)
 
         # Read
-        bot_config = get_json(join(dir_, "/config/bot_config.json"))
-        bot_secrets = get_json(join(dir_, "/config/bot_secrets.json"))
+        bot_config = get_json(join(dir_, "config/bot_config.json"))
+        bot_secrets = get_json(join(dir_, "config/bot_secrets.json"))
 
         # Merge
         return {**bot_config, **bot_secrets}

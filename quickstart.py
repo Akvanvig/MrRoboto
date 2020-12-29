@@ -58,7 +58,9 @@ KUBE_BOT_CONFIG = {
         'name': 'robotobot-config',
         'namespace': 'roboto'
     },
-    'data': EXAMPLE_BOT_CONFIG
+    'data': {
+        'bot_config.json' : json.dumps(EXAMPLE_BOT_CONFIG)
+    }
 }
 
 KUBE_BOT_SECRETS = {
@@ -69,7 +71,9 @@ KUBE_BOT_SECRETS = {
         'name': 'robotobot-secrets',
         'namespace': 'roboto'
     },
-    'data': EXAMPLE_BOT_SECRETS
+    'data': {
+        'bot_secrets.json': json.dumps(EXAMPLE_BOT_SECRETS)
+    }
 }
 
 KUBE_DB_SECRETS = {

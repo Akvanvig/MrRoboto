@@ -390,7 +390,7 @@ class Audio(commands.Cog):
 
         aliasDict = self.songlist.getAliasDict()
         if query.lower() in aliasDict:
-            path = self.audiofilesPath + aliasDict[query.lower()]
+            path = os.path.join(self.audiofilesPath, aliasDict[query.lower()])
             print('Requested {}'.format(path))
 
             source = await YTDLSource.create_source_local(ctx, path, query, loop=self.client.loop)

@@ -54,7 +54,7 @@ class SongList():
                 if file.endswith('.mp3'):
                     path = os.path.join(r, file)
                     path = os.path.normpath(path)
-                    files.append(path[(len(self.audiopath) + 1:])
+                    files.append(path[(len(self.audiopath) + 1):])
         #Creating dict of song-objects
         songs = []
         for f in files:

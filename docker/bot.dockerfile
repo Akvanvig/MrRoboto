@@ -16,4 +16,4 @@ RUN python3 -m pip install -r /MrRoboto/requirements.txt
 
 CMD python3 /Discord-bot-py/client.py
 
-# docker build --no-cache -t test-discord:arm64v8 -f .\bot.Dockerfile . --build-arg ARCH=arm64v8
+# docker build --no-cache -t ghcr.io/akvanvig/mrroboto_no-audio:arm64v8 -t ghcr.io/akvanvig/mrroboto_no-audio:latest -f ./docker/bot_no-audio.dockerfile . --build-arg ARCH=arm64v8

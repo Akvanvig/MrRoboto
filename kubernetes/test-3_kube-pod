@@ -13,25 +13,30 @@ spec:
 
     volumeMounts:
       - name: config
-        mountPath: MrRoboto/config/bot.json
-        subPath: bot.json
+        mountPath: MrRoboto/config/bot_config.json
+        subPath: bot_config.json
         readOnly: true
       - name: secrets
-        mountPath: MrRoboto/config/secrets.json
-        subPath: secrets.json
+        mountPath: MrRoboto/config/bot_secrets.json
+        subPath: bot_secrets.json
         readOnly: true
       - name: audiofiles
         mountPath: MrRoboto/media
+      - name: bot-files
+        mountPath: MrRoboto/bot
 
   volumes:
     - name: config
       configMap:
-        name: discord-py-config
+        name: robotobot-config
     - name: secrets
       secret:
-        secretName: discord-py-secrets
+        secretName: robotobot-secrets
     - name: audiofiles
       persistentVolumeClaim:
-        claimName: nfs-robotoaudiofiles
+        claimName: nfs-robotoaudiofiles-claim
+    - name: bot-files
+      persistentVolumeClaim:
+        claimName: nfs-robototest-claim
 
   restartPolicy: Never

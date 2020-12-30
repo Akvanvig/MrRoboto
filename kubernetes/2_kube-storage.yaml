@@ -68,3 +68,40 @@ spec:
   resources:
     requests:
       storage: 10Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-robototest
+  namespace: roboto
+  labels:
+    app: roboto-test
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs
+  nfs:
+    path: /mnt/disk1/robotoTest
+    server: 192.168.10.6
+    readOnly: false
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-robototest-claim
+  namespace: roboto
+  labels:
+    app: roboto-test
+spec:
+  storageClassName: nfs
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

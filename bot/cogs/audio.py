@@ -53,9 +53,8 @@ class SongList():
             for file in f:
                 if file.endswith('.mp3'):
                     path = os.path.join(r, file)
-                    path = path.replace('\\','/') #Replaces backslashes given by windows with a single regular slash
-                    path = (path)[(len(self.audiopath)):] #Removes path listed to audio-directory
-                    files.append(path)
+                    path = os.path.normpath(path)
+                    files.append(path[(len(self.audiopath) + 1:])
         #Creating dict of song-objects
         songs = []
         for f in files:

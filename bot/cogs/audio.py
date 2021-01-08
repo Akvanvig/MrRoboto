@@ -391,7 +391,6 @@ class Audio(commands.Cog):
 
         await player.queue.put(source)
 
-
     @commands.command(name='play', aliases=['local'])
     async def play(self, ctx, *, query):
 
@@ -407,11 +406,12 @@ class Audio(commands.Cog):
         # If a category name is given, it will play song in category in random order
         if query.lower() in categoryList:
             songs = self.songlist.getCatSongDict(query.lower())
-            listSongs = random.shuffle(list(songs))
-            for song in listSongs():
-                path = os.path.join(self.audiofilesPath, song.path)
-                print('Requested list {}'.format(path))
-                source = await YTDLSource.create_source_local(ctx, path, song.getBasename, loop=self.client.loop)
+            listSongs = list(songs)
+            random.shuffle(listSongs)
+            print('Requested list {}'.format(query))
+            for song in listSongs:
+                path = os.path.join(self.audiofilesPath, songs[song])
+                source = await YTDLSource.create_source_local(ctx, path, song, loop=self.client.loop)
                 await player.queue.put(source)
 
         # If songname or alias for song is given, that single song will be played

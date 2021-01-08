@@ -3,6 +3,7 @@ import os
 import asyncio
 import itertools
 import discord
+import random
 
 
 from async_timeout import timeout
@@ -74,8 +75,8 @@ class SongList():
         return resultlist
 
     def addAlias(self, name, newAlias):
-        aliasDict = self.getAliasDict()
-        if newAlias in aliasDict:
+        songDict = self.getSongDict()
+        if newAlias in songDict:
             return False
         for i in range(0, len(self.songs)):
             if self.songs[i].name == name:
@@ -109,11 +110,18 @@ class SongList():
                     resultlist.append(category)
         return resultlist
 
-    def getAliasDict(self):
+    def getSongDict(self):
         resultdict = {}
         for song in self.songs:
             for alias in song.aliases:
                 resultdict[alias] = song.filepath
+        return resultdict
+
+    def getCatSongDict(self, category=""):
+        resultdict = {}
+        for song in self.songs:
+            if song.getCategory() == category.lower():
+                resultdict[song.getBasename()] = song.filepath
         return resultdict
 
 class Song():
@@ -135,6 +143,13 @@ class Song():
 
     def setAliases(self, aliases):
         self.aliases = aliases
+
+    def getCategory(self):
+        return os.path.dirname(self.name)
+
+    def getBasename(self):
+        return os.path.basename(self.name)
+
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, requester):
@@ -198,7 +213,6 @@ class YTDLSource(discord.PCMVolumeTransformer):
         data = await loop.run_in_executor(None, to_run)
 
         return cls(discord.FFmpegPCMAudio(data['url'], options=ffmpeg_options, before_options=ffmpeg_before_options), data=data, requester=requester)
-
 
 class MusicPlayer:
     """A class which is assigned to each guild using the bot for Music.
@@ -387,14 +401,27 @@ class Audio(commands.Cog):
             await ctx.invoke(self.connect)
         player = self.get_player(ctx)
 
+        songDict = self.songlist.getSongDict()
+        categoryList = self.songlist.getStrListCategories()
 
-        aliasDict = self.songlist.getAliasDict()
-        if query.lower() in aliasDict:
-            path = os.path.join(self.audiofilesPath, aliasDict[query.lower()])
-            print('Requested {}'.format(path))
+        # If a category name is given, it will play song in category in random order
+        if query.lower() in categoryList:
+            songs = self.songlist.getCatSongDict(query.lower())
+            listSongs = random.shuffle(list(songs))
+            for song in listSongs():
+                path = os.path.join(self.audiofilesPath, song.path)
+                print('Requested list {}'.format(path))
+                source = await YTDLSource.create_source_local(ctx, path, song.getBasename, loop=self.client.loop)
+                await player.queue.put(source)
 
+        # If songname or alias for song is given, that single song will be played
+        elif query.lower() in songDict:
+            path = os.path.join(self.audiofilesPath, songDict[query.lower()])
+            print('Requested song {}'.format(path))
             source = await YTDLSource.create_source_local(ctx, path, query, loop=self.client.loop)
             await player.queue.put(source)
+
+        # If not found in categories nor songaliases
         else:
             await ctx.send('Could not find {}'.format(query))
 

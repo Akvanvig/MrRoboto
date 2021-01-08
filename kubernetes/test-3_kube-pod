@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
   - name: roboto
-    image: ghcr.io/akvanvig/mrroboto_no-audio:latest
+    image: ghcr.io/akvanvig/mrroboto_test:latest
     command: ["python3", "-m", "http.server", "80"]
 
     volumeMounts:

@@ -193,13 +193,16 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
 
     @classmethod
-    async def create_source_local(cls, ctx, path, title, loop):
+    async def create_source_local(cls, ctx, path, title, loop, notifyQueue=True):
         loop = loop or asyncio.get_event_loop()
         #Metadata for audiofile
         data = {'title':title}
         source = discord.FFmpegPCMAudio(path)
 
-        await ctx.send('```ini\n[Added {} to the Queue.]\n```'.format(data["title"]), delete_after=15)
+        #Don't notify to channel if an entire playlist is being added
+        if notifyQueue:
+            await ctx.send('```ini\n[Added {} to the Queue.]\n```'.format(data["title"]), delete_after=15)
+
         return cls(source, data=data, requester=ctx.author)
 
     @classmethod
@@ -395,28 +398,33 @@ class Audio(commands.Cog):
     async def play(self, ctx, *, query):
 
         await ctx.trigger_typing()
-        vc = ctx.voice_client
-        if not vc:
-            await ctx.invoke(self.connect)
-        player = self.get_player(ctx)
+        queryLower = query.lower()
 
         songDict = self.songlist.getSongDict()
         categoryList = self.songlist.getStrListCategories()
 
+        #Only connect if song or list exists
+        if queryLower in categoryList or queryLower in songDict:
+            # connects to voicechat if not already in it
+            player = self.get_player(ctx)
+            vc = ctx.voice_client
+            if not vc:
+                await ctx.invoke(self.connect)
+
         # If a category name is given, it will play song in category in random order
-        if query.lower() in categoryList:
-            songs = self.songlist.getCatSongDict(query.lower())
+        if queryLower in categoryList:
+            songs = self.songlist.getCatSongDict(queryLower)
             listSongs = list(songs)
             random.shuffle(listSongs)
             print('Requested list {}'.format(query))
             for song in listSongs:
                 path = os.path.join(self.audiofilesPath, songs[song])
-                source = await YTDLSource.create_source_local(ctx, path, song, loop=self.client.loop)
+                source = await YTDLSource.create_source_local(ctx, path, song, loop=self.client.loop, notifyQueue=False)
                 await player.queue.put(source)
 
         # If songname or alias for song is given, that single song will be played
-        elif query.lower() in songDict:
-            path = os.path.join(self.audiofilesPath, songDict[query.lower()])
+        elif queryLower in songDict:
+            path = os.path.join(self.audiofilesPath, songDict[queryLower])
             print('Requested song {}'.format(path))
             source = await YTDLSource.create_source_local(ctx, path, query, loop=self.client.loop)
             await player.queue.put(source)

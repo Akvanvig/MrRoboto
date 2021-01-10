@@ -35,7 +35,7 @@ class SongList():
         if os.path.isfile(self.audioJsonPath):
             audioList = get_json(self.audioJsonPath)
             for v in audioList:
-                songs.append(Song(v['name'], v['path'], v['aliases']))
+                songs.append(Song(v['name'], v['category'], v['path'], v['aliases']))
             print('Songlist imported from {}'.format(self.audioJsonPath))
         return songs
 
@@ -59,8 +59,8 @@ class SongList():
         #Creating dict of song-objects
         songs = []
         for f in files:
-            name = (f.replace('.mp3',''))
-            songs.append(Song(name.lower(), f, [name.lower(), f.lower()]))
+            name = os.path.basename(f).replace('.mp3','')
+            songs.append(Song(name.lower(), os.path.dirname(f), f, [name.lower(), f.lower()]))
 
         return songs
 
@@ -74,59 +74,57 @@ class SongList():
         print('Songlists have been merged')
         return resultlist
 
+    # Adds an alias to a song object
+    # Will check if the alias is already in use somewhere else first
+    # Returns a boolean indicating if alias was added
     def addAlias(self, name, newAlias):
         songDict = self.getSongDict()
         if newAlias in songDict:
             return False
         for i in range(0, len(self.songs)):
             if self.songs[i].name == name:
-                if not newAlias in self.songs[i].aliases:
-                    self.songs[i].aliases.append(newAlias)
-                    self.exportAudioJson()
-                    return True
-                return False
+                self.songs[i].aliases.append(newAlias)
+                self.exportAudioJson()
+                return True
         return False
 
-    def getListCategory(self, category):
+    # Returns a Song-object list of songs in a given category
+    #
+    # [{"name":"songname", "category":"folder", "filepath":"folder/file.mp3", "aliases":["file", "song", "retard"]}]
+    def getListCategory(self, category=''):
         resultlist = []
         for song in self.songs:
-            if song.name.startswith(category):
+            if song.getCategory() == category:
                 resultlist.append(song)
         return resultlist
 
-    def getListNoCategory(self):
-        resultlist = []
-        for song in self.songs:
-            if '/' not in song.name:
-                resultlist.append(song)
-        return resultlist
-
+    # Returns a String list of categories
+    # Each category is decided based on if it's in a subfolder under media
+    # ["category1", "category2"]
     def getStrListCategories(self):
         resultlist = []
         for song in self.songs:
-            if '/' in song.name:
-                category = (song.name.split('/'))[0]
-                if category not in resultlist:
-                    resultlist.append(category)
+            cat = song.getCategory()
+            if cat != '':
+                if cat not in resultlist:
+                    resultlist.append(cat)
         return resultlist
 
+    # Returns a dictionary containing all aliases and corresponding filepaths.
+    # Notice this might contain several entries pr. file
+    # {"song":"path.mp3", "song.mp3":"path.mp3"}
     def getSongDict(self):
         resultdict = {}
         for song in self.songs:
             for alias in song.aliases:
-                resultdict[alias] = song.filepath
+                resultdict[alias] = song.getFilepath()
         return resultdict
 
-    def getCatSongDict(self, category=""):
-        resultdict = {}
-        for song in self.songs:
-            if song.getCategory() == category.lower():
-                resultdict[song.getBasename()] = song.filepath
-        return resultdict
 
 class Song():
-    def __init__(self, name, filepath, aliases):
+    def __init__(self, name, category, filepath, aliases):
         self.name = name
+        self.category = category
         self.filepath = filepath
         self.aliases = aliases
 
@@ -139,16 +137,21 @@ class Song():
             return False
 
     def get_json(self):
-        return {"name": self.name, "path": self.filepath, "aliases": self.aliases}
+        return {"name": self.name, "category": self.category, "path": self.filepath, "aliases": self.aliases}
 
     def setAliases(self, aliases):
         self.aliases = aliases
 
     def getCategory(self):
-        return os.path.dirname(self.name)
+        #return os.path.dirname(self.name)
+        returnself.category
 
     def getBasename(self):
-        return os.path.basename(self.name)
+        #return os.path.basename(self.name)
+        return self.name
+
+    def getFilepath(self):
+        return self.filepath
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
@@ -413,13 +416,13 @@ class Audio(commands.Cog):
 
         # If a category name is given, it will play song in category in random order
         if queryLower in categoryList:
-            songs = self.songlist.getCatSongDict(queryLower)
+            songs = self.songlist.getListCategory(queryLower)
             listSongs = list(songs)
             random.shuffle(listSongs)
             print('Requested list {}'.format(query))
             for song in listSongs:
-                path = os.path.join(self.audiofilesPath, songs[song])
-                source = await YTDLSource.create_source_local(ctx, path, song, loop=self.client.loop, notifyQueue=False)
+                path = os.path.join(self.audiofilesPath, song.getFilepath())
+                source = await YTDLSource.create_source_local(ctx, path, song.getBasename(), loop=self.client.loop, notifyQueue=False)
                 await player.queue.put(source)
 
         # If songname or alias for song is given, that single song will be played
@@ -496,6 +499,7 @@ class Audio(commands.Cog):
 
         await ctx.send(embed=embed)
 
+
     @commands.command(name='now_playing', aliases=['np', 'current', 'currentsong', 'playing'])
     async def now_playing(self, ctx):
         """Display information about the currently playing song."""
@@ -515,6 +519,8 @@ class Audio(commands.Cog):
             pass
 
         player.np = await ctx.send('**Now Playing:** {}\n requested by {}'.format(vc.source.title, vc.source.requester))
+
+
 
     @commands.command(name='volume', aliases=['vol'])
     async def change_volume(self, ctx, *, vol: float):
@@ -540,6 +546,8 @@ class Audio(commands.Cog):
         player.volume = vol / 100
         await ctx.send('**`{}`**: Set the volume to **{}%**'.format(ctx.author, vol))
 
+
+
     @commands.command(name='stop', aliases=['disconnect', 'dc'])
     async def stop(self, ctx):
         """Stop the currently playing song and destroy the player.
@@ -554,6 +562,7 @@ class Audio(commands.Cog):
         await self.cleanup(ctx.guild)
 
 
+
     @commands.command(name='categories', aliases=['cat', 'category'], description="Lists out all available categories (Not all songs a categorized)")
     async def categories(self, ctx):
         categoryList = self.songlist.getStrListCategories()
@@ -566,10 +575,8 @@ class Audio(commands.Cog):
 
     @commands.command(name='songs', aliases=['category-songs'], description="Lists out songs in a given category")
     async def songs(self, ctx, category=None):
-        if category:
-            songs = self.songlist.getListCategory(category)
-        else:
-            songs = self.songlist.getListNoCategory()
+        songs = self.songlist.getListCategory()
+        if not category:
             category = "No Category"
 
         fmt = '\n'.join('**{}** - {}'.format(song.name, song.aliases) for song in songs)

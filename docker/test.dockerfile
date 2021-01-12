@@ -16,7 +16,7 @@ COPY docker/install-packages.sh ./bot/install-packages.sh
 
 ARG ARCH=arm64v8
 FROM ${ARCH}/python:3.8-slim-buster
-# LABEL org.opencontainers.image.source https://github.com/Akvanvig/MrRoboto
+LABEL org.opencontainers.image.source https://github.com/Akvanvig/MrRoboto
 
 WORKDIR /MrRoboto/bot
 COPY --from=builder /MrRoboto/bot /MrRoboto/bot

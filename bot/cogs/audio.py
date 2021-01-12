@@ -9,6 +9,7 @@ import random
 from async_timeout import timeout
 from functools import partial
 from common.json_h import *
+from common.util_h import *
 from common import config_h
 from discord.ext import commands
 
@@ -144,7 +145,7 @@ class Song():
 
     def getCategory(self):
         #return os.path.dirname(self.name)
-        returnself.category
+        return self.category
 
     def getBasename(self):
         #return os.path.basename(self.name)
@@ -575,14 +576,23 @@ class Audio(commands.Cog):
 
     @commands.command(name='songs', aliases=['category-songs'], description="Lists out songs in a given category")
     async def songs(self, ctx, category=None):
-        songs = self.songlist.getListCategory()
-        if not category:
+        if category:
+            songs = self.songlist.getListCategory(category)
+        else:
+            songs = self.songlist.getListCategory()
             category = "No Category"
 
-        fmt = '\n'.join('**{}** - {}'.format(song.name, song.aliases) for song in songs)
-        embed = discord.Embed(title='Songs {} - aliases'.format(category), description=fmt)
+        songs.sort(key=lambda song: song.name)
 
-        await ctx.send(embed=embed)
+        fmt = '\n'.join('**{}** - {}'.format(song.name, song.aliases) for song in songs)
+        messageParts = message_split(fmt)
+
+        for i in range(len(messageParts)):
+            if i == 0:
+                embed = discord.Embed(title='Songs {} - aliases'.format(category), description=messageParts[i])
+            else:
+                embed = discord.Embed(title='Songs {} {} - aliases'.format(category, i+1), description=messageParts[i])
+            await ctx.send(embed=embed)
 
 #
 # SETUP

@@ -5,12 +5,8 @@ import sys
 from discord.ext import commands, tasks
 from common import config_h
 from common.time_h import datetime_ext
+from common.util_h import message_split
 
-#
-#
-#
-
-MSG_LIMIT = 2000
 
 #
 # CLASSES
@@ -35,12 +31,8 @@ class Owners(commands.Cog):
         try:
             output = future.result()
             update_str = "--- {} ---\nUPDATE CHECK".format(datetime_ext.now())
-            update_content = []
 
-            while len(output) > 0:
-                tmp_output = output[:MSG_LIMIT - 6]
-                output = output[len(tmp_output):]
-                update_content.append("```{}```".format(tmp_output))
+            update_content = message_split(output)
 
             for owner_id in self.client.owner_ids:
                 user = await self.client.fetch_user(owner_id)
@@ -48,7 +40,7 @@ class Owners(commands.Cog):
 
                 await dm.send(update_str)
                 for part in update_content:
-                    await dm.send(part) 
+                    await dm.send("```{}```".format(part))
 
             print(update_content)
             print("Finished the outdated component check...")
@@ -59,12 +51,12 @@ class Owners(commands.Cog):
 
         except Exception:
             print("Fatal error, Failed to check for outdated components...")
-        
+
 
     @outdated_reminder.before_loop
     async def before_reminder(self):
         await self.client.wait_until_ready()
-        
+
 
     #
     # COMMANDS
@@ -101,7 +93,7 @@ class Owners(commands.Cog):
             await ctx.send('\N{OK HAND SIGN}')
 
     @commands.command(
-        name = 'refreshconf', 
+        name = 'refreshconf',
         hidden = True)
     async def refresh_conf(self, ctx):
         conf = config_h.get(from_disk = True)

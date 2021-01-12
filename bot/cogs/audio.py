@@ -522,12 +522,6 @@ class Audio(commands.Cog):
         if not player.current:
             return await ctx.send('I am not currently playing anything!')
 
-        try:
-            # Remove our previous now_playing message.
-            await player.np.delete()
-        except discord.HTTPException:
-            pass
-
         player.np = await ctx.send('**Now Playing:** {}\n requested by {}'.format(vc.source.title, vc.source.requester))
 
 

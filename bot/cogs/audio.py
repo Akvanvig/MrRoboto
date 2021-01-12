@@ -181,9 +181,14 @@ class YTDLSource(discord.PCMVolumeTransformer):
         to_run = partial(ytdl.extract_info, url=search, download=download)
         data = await loop.run_in_executor(None, to_run)
 
+        # If entries exists, ytdl has done a search or received a playlist
+        # entries contains a list of dict with ifo about videos
         if 'entries' in data:
-            # take first item from a playlist
-            data = data['entries'][0]
+            # If entries contains any data we want to choose the first one
+            if len(data['entries']) > 0:
+                data = data['entries'][0]
+            else:
+                return None
 
         await ctx.send('```ini\n[Added {} to the Queue.]\n```'.format(data["title"]), delete_after=15)
 
@@ -387,16 +392,20 @@ class Audio(commands.Cog):
             The song to search and retrieve using YTDL. This could be a simple search, an ID or URL.
         """
         await ctx.trigger_typing()
-        vc = ctx.voice_client
-        if not vc:
-            await ctx.invoke(self.connect)
-        player = self.get_player(ctx)
 
         # If download is False, source will be a dict which will be used later to regather the stream.
         # If download is True, source will be a discord.FFmpegPCMAudio with a VolumeTransformer.
         source = await YTDLSource.create_source(ctx, search, loop=self.client.loop, download=False)
+        if source:
+            #Connect to voicechat if not already connected
+            vc = ctx.voice_client
+            if not vc:
+                await ctx.invoke(self.connect)
 
-        await player.queue.put(source)
+            player = self.get_player(ctx)
+            await player.queue.put(source)
+        else:
+            await ctx.send('Could not find "{}" on youtube'.format(search))
 
     @commands.command(name='play', aliases=['local'])
     async def play(self, ctx, *, query):
@@ -435,7 +444,7 @@ class Audio(commands.Cog):
 
         # If not found in categories nor songaliases
         else:
-            await ctx.send('Could not find {}'.format(query))
+            await ctx.send('Could not find "{}" locally'.format(query))
 
 
     @commands.command(name='pause')

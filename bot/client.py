@@ -26,7 +26,7 @@ Extensions = [
 # CLASSES
 #
 
-class MrRoboto(commands.Bot):
+class MrRoboto(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db = PostgresDB()
@@ -55,7 +55,7 @@ class MrRoboto(commands.Bot):
 
         if isinstance(error, commands.MissingRequiredArgument):
             await ctx.send("{}: {}".format(error.__class__.__name__, error))
-        
+
         elif isinstance(error, commands.CommandNotFound):
             await ctx.send("Command \'{}\' not found".format(ctx.invoked_with))
 
@@ -90,9 +90,9 @@ def main():
     conf = config_h.get()
 
     client = MrRoboto(
-        loop = loop, 
-        command_prefix = conf['commandPrefix'], 
-        case_insensitive = True, 
+        loop = loop,
+        command_prefix = conf['commandPrefix'],
+        case_insensitive = True,
         owner_ids = conf['ownerIds']
     )
 

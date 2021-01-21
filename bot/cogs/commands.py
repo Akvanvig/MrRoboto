@@ -30,9 +30,13 @@ class Other(commands.Cog):
     @commands.command(
         name='choose'
     )
-    async def choose(self, ctx, *choices: str):
+    async def choose(self, ctx):
         """Picks a random alternative from given space separated options"""
+        choices = ctx.message.clean_content.split(" ")
+        if len(choices) <= 1:
+            raise commands.UserInputError("Must specify choices")
         await ctx.send('{} has been chosen'.format(random.choice(choices)))
+
 
     @commands.command(
         name='kys'

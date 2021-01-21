@@ -30,7 +30,7 @@ class Other(commands.Cog):
     @commands.command(
         name='choose'
     )
-    async def choose(self, ctx,, *choices: str):
+    async def choose(self, ctx, *choices: str):
         """Picks a random alternative from given space separated options"""
         await ctx.send('{} has been chosen'.format(random.choice(choices)))
 

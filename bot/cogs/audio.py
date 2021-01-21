@@ -354,7 +354,11 @@ class Audio(commands.Cog):
     # COMMANDS
     #
 
-    @commands.command(name='connect', aliases=['join'])
+    @commands.command(
+        name='connect',
+        aliases=['join'],
+        description='Connects the bot to a given channel'
+    )
     async def connect(self, ctx, *, channel: discord.VoiceChannel=None):
         if not channel:
             try:
@@ -381,7 +385,11 @@ class Audio(commands.Cog):
         await ctx.send('Connected to: {}'.format(channel), delete_after=20)
 
 
-    @commands.command(name='stream', aliases=['yt'])
+    @commands.command(
+        name='stream',
+        aliases=['yt', 's'],
+        description='Streams a song or video from youtube.\nCan stream videos from other sources like discord, soundcloud, reddit, twitter or pornhub as well'
+    )
     async def stream(self, ctx, *, search: str):
         """Request a song and add it to the queue.
         This command attempts to join a valid voice channel if the bot is not already in one.
@@ -407,7 +415,11 @@ class Audio(commands.Cog):
         else:
             await ctx.send('Could not find "{}" on youtube'.format(search))
 
-    @commands.command(name='play', aliases=['local'])
+    @commands.command(
+        name='play',
+        aliases=['local', 'p'],
+        description='Play a locally stored file or playlist, check songs and playlists with "songs" and "category"'
+    )
     async def play(self, ctx, *, query):
 
         await ctx.trigger_typing()
@@ -447,7 +459,10 @@ class Audio(commands.Cog):
             await ctx.send('Could not find "{}" locally'.format(query))
 
 
-    @commands.command(name='pause')
+    @commands.command(
+        name='pause',
+        description='Pause the currently playing song'
+    )
     async def pause(self, ctx):
         """Pause the currently playing song."""
         vc = ctx.voice_client
@@ -460,7 +475,10 @@ class Audio(commands.Cog):
         vc.pause()
         await ctx.send('**{}**: Paused the song!'.format(ctx.author))
 
-    @commands.command(name='resume')
+    @commands.command(
+        name='resume',
+        description='Continue playing a paused song'
+    )
     async def resume(self, ctx):
         """Resume the currently paused song."""
         vc = ctx.voice_client
@@ -473,7 +491,10 @@ class Audio(commands.Cog):
         vc.resume()
         await ctx.send('**{}**: Resumed the song!'.format(ctx.author))
 
-    @commands.command(name='skip')
+    @commands.command(
+        name='skip',
+        description='Skip the current playing song'
+    )
     async def skip(self, ctx):
         """Skip the song."""
         vc = ctx.voice_client
@@ -489,7 +510,11 @@ class Audio(commands.Cog):
         vc.stop()
         await ctx.send('**{}**: Skipped the song!'.format(ctx.author))
 
-    @commands.command(name='queue', aliases=['q', 'playlist'])
+    @commands.command(
+        name='queue',
+        aliases=['q', 'playlist'],
+        description='Shows next songs in the queue'
+    )
     async def queue_info(self, ctx):
         """Retrieve a basic queue of upcoming songs."""
         vc = ctx.voice_client
@@ -510,7 +535,11 @@ class Audio(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='now_playing', aliases=['np', 'current', 'currentsong', 'playing'])
+    @commands.command(
+        name='now_playing',
+        aliases=['np', 'current', 'currentsong', 'playing'],
+        description='Shows the currently playing song'
+    )
     async def now_playing(self, ctx):
         """Display information about the currently playing song."""
         vc = ctx.voice_client
@@ -526,7 +555,11 @@ class Audio(commands.Cog):
 
 
 
-    @commands.command(name='volume', aliases=['vol'])
+    @commands.command(
+        name='volume',
+        aliases=['vol'],
+        description='Adjusts the volume audio will be played at'
+    )
     async def change_volume(self, ctx, *, vol: float):
         """Change the player volume.
         Parameters
@@ -552,7 +585,11 @@ class Audio(commands.Cog):
 
 
 
-    @commands.command(name='stop', aliases=['disconnect', 'dc'])
+    @commands.command(
+        name='stop',
+        aliases=['disconnect', 'dc'],
+        description='Disconnects the bot from the audiochannel'
+    )
     async def stop(self, ctx):
         """Stop the currently playing song and destroy the player.
         !Warning!
@@ -567,7 +604,11 @@ class Audio(commands.Cog):
 
 
 
-    @commands.command(name='categories', aliases=['cat', 'category'], description="Lists out all available categories (Not all songs a categorized)")
+    @commands.command(
+        name='categories',
+        aliases=['cat', 'category'],
+        description='Lists out all available categories (Not all songs a categorized)'
+    )
     async def categories(self, ctx):
         categoryList = self.songlist.getStrListCategories()
 
@@ -577,7 +618,11 @@ class Audio(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @commands.command(name='songs', aliases=['category-songs'], description="Lists out songs in a given category")
+    @commands.command(
+        name='songs',
+        aliases=['category-songs'],
+        description='Lists out songs in a given category'
+    )
     async def songs(self, ctx, category=None):
         if category:
             songs = self.songlist.getListCategory(category)

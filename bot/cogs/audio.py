@@ -13,6 +13,8 @@ from common.util_h import *
 from common import config_h
 from discord.ext import commands
 
+from math import ceil
+
 """
 Variables
 """
@@ -522,29 +524,60 @@ class Audio(commands.Cog):
         await ctx.send('**{}**: Skipped the song!'.format(ctx.author))
 
 
-    @commands.command(
+    @commands.group(
         name='queue',
-        aliases=['q', 'playlist']
+        aliases=['q', 'playlist'],
+        invoke_without_command = True
     )
-    async def queue_info(self, ctx):
+    async def _queue(self, ctx, page: int=1, numPrPage: int=5):
         """Retrieve a basic queue of upcoming songs."""
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
             return await ctx.send('I am not currently connected to voice!', delete_after=20)
 
-        player = self.get_player(ctx)
-        if player.queue.empty():
+        queue = (self.get_player(ctx)).queue
+        if queue.empty():
             return await ctx.send('There are currently no more queued songs.')
 
-        # Grab up to 5 entries from the queue...
-        upcoming = list(itertools.islice(player.queue._queue, 0, 5))
+        #fetches some numbers for later
+        startPosition = (page - 1) * numPrPage
+        queueLength = queue.qsize()
+        lastPage = ceil(queueLength / numPrPage)
 
+        #checks if number given make sense
+        if page < 1:
+            raise commands.UserInputError("Specify page 1 or higher")
+        elif page > lastPage:
+            raise commands.UserInputError("Page number too high")
+
+        #make and split message
+        upcoming = list(itertools.islice(queue._queue, startPosition, (startPosition + numPrPage)))
         fmt = '\n'.join('**{}**'.format(_["title"]) for _ in upcoming)
-        embed = discord.Embed(title='Upcoming - Next {}'.format(len(upcoming)), description=fmt)
+        messageParts = message_split(fmt, length=1950)
 
-        await ctx.send(embed=embed)
+        #send messages
+        for i in range(len(messageParts)):
+            if i == 0:
+                embed = discord.Embed(title='Queue - page {}'.format(page), description=messageParts[i])
+            else:
+                embed = discord.Embed(title='Queue - page {} - part {}'.format(page, i+1), description=messageParts[i])
+            await ctx.send(embed=embed)
 
+
+    @_queue.command(
+        name = 'full',
+        aliases = ['all']
+    )
+    async def _queue_all(self, ctx):
+        """Retrieve a queue of all upcoming songs"""
+        vc = ctx.voice_client
+
+        if not vc or not vc.is_connected():
+            return await ctx.send('I am not currently connected to voice!', delete_after=20)
+
+        lengthQueue = (self.get_player(ctx)).queue.qsize()
+        await ctx.invoke(self.client.get_command('queue'), page=1, numPrPage=lengthQueue)
 
     @commands.command(
         name='now_playing',

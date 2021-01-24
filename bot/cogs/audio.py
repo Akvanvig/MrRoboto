@@ -491,10 +491,11 @@ class Audio(commands.Cog):
         vc.resume()
         await ctx.send('**{}**: Resumed the song!'.format(ctx.author))
 
+
     @commands.command(
         name='skip'
     )
-    async def skip(self, ctx):
+    async def skip(self, ctx, count: int=None, lim = 15):
         """Skip the current playing song"""
         vc = ctx.voice_client
 
@@ -506,8 +507,20 @@ class Audio(commands.Cog):
         elif not vc.is_playing():
             return
 
+        # Remove multiple items from queue
+        if count != None and (count >= 1 and count <= lim):
+            count -= 1 #removing 1 to account for currently playing song
+            queue = (self.get_player(ctx)).queue
+            itemsQueue = queue.qsize()
+            x = min(count, itemsQueue)
+            for i in range(x):
+                queue.get_nowait()
+        elif count != None and (count >= 0 or count <= lim):
+            raise commands.UserInputError("Specify a number between 1 and {}".format(lim))
+
         vc.stop()
         await ctx.send('**{}**: Skipped the song!'.format(ctx.author))
+
 
     @commands.command(
         name='queue',

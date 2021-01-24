@@ -497,8 +497,14 @@ class Audio(commands.Cog):
     @commands.command(
         name='skip'
     )
-    async def skip(self, ctx, count: int=None, lim = 15):
-        """Skip the current playing song"""
+    async def skip(self, ctx, count: int=None):
+        """Skip the current playing song
+        Parameters
+        ------------
+        count: int
+            number of songs to skip
+        """
+        lim = 15
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
@@ -530,7 +536,13 @@ class Audio(commands.Cog):
         invoke_without_command = True
     )
     async def _queue(self, ctx, page: int=1, numPrPage: int=5):
-        """Retrieve a basic queue of upcoming songs."""
+        """Retrieve a basic queue of upcoming songs.
+        Parameters
+        ------------
+        page: int
+            what page to see
+        numPrPage: int
+            How many entries per page"""
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
@@ -566,8 +578,8 @@ class Audio(commands.Cog):
 
 
     @_queue.command(
-        name = 'full',
-        aliases = ['all']
+        name = 'all',
+        aliases = ['full']
     )
     async def _queue_all(self, ctx):
         """Retrieve a queue of all upcoming songs"""

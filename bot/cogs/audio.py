@@ -1,5 +1,6 @@
 import youtube_dl
 import os
+import subprocess
 import asyncio
 import itertools
 import discord
@@ -163,6 +164,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.requester = requester
 
         self.title = data.get('title')
+        self.progress = 0
         self.web_url = data.get('webpage_url')
 
         # YTDL info dicts (data) have other useful information you might want
@@ -197,7 +199,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         if download:
             source = ytdl.prepare_filename(data)
         else:
-            return {'webpage_url': data['webpage_url'], 'requester': ctx.author, 'title': data['title']}
+            return {'webpage_url': data['webpage_url'], 'requester': ctx.author, 'title': data['title'], 'duration': data['duration'], 'is_live': data['is_live']}
 
         #Testing return cls(discord.FFmpegPCMAudio(source, options=ffmpeg_options, before_options=ffmpeg_before_options), data=data, requester=ctx.author)
         return cls(discord.FFmpegPCMAudio(source, options=ffmpeg_options, before_options=ffmpeg_before_options), data=data, requester=ctx.author)
@@ -206,8 +208,11 @@ class YTDLSource(discord.PCMVolumeTransformer):
     @classmethod
     async def create_source_local(cls, ctx, path, title, loop, notifyQueue=True):
         loop = loop or asyncio.get_event_loop()
+
         #Metadata for audiofile
-        data = {'title':title}
+        duration = subprocess.check_output(['ffprobe', '-i', path, '-show_entries', 'format=duration', '-v', 'quiet', '-of', 'csv=%s' % ("p=0")]).decode('utf-8').replace('\n', '')
+        duration = round(float(duration))
+        data = {'title':title, 'is_live': None, 'duration': duration}
         source = discord.FFmpegPCMAudio(path)
 
         #Don't notify to channel if an entire playlist is being added
@@ -450,6 +455,7 @@ class Audio(commands.Cog):
                 path = os.path.join(self.audiofilesPath, song.getFilepath())
                 source = await YTDLSource.create_source_local(ctx, path, song.getBasename(), loop=self.client.loop, notifyQueue=False)
                 await player.queue.put(source)
+            await ctx.send('Requested list {} has been added to queue'.format(query))
 
         # If songname or alias for song is given, that single song will be played
         elif queryLower in songDict:
@@ -565,8 +571,8 @@ class Audio(commands.Cog):
 
         #make and split message
         upcoming = list(itertools.islice(queue._queue, startPosition, (startPosition + numPrPage)))
-        fmt = '\n'.join('**{}**'.format(_["title"]) for _ in upcoming)
-        messageParts = message_split(fmt, length=1950)
+        message = '\n'.join('**{}** - {}'.format((timedelta(seconds=_['duration']) if _['duration'] != 0 else  'livestream'), _['title'],) for _ in upcoming)
+        messageParts = message_split(message, length=1950)
 
         #send messages
         for i in range(len(messageParts)):

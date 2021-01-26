@@ -6,7 +6,6 @@ import itertools
 import discord
 import random
 
-
 from async_timeout import timeout
 from functools import partial
 from common.json_h import *
@@ -14,6 +13,7 @@ from common.util_h import *
 from common import config_h
 from discord.ext import commands
 
+from datetime import timedelta
 from math import ceil
 
 """
@@ -163,8 +163,9 @@ class YTDLSource(discord.PCMVolumeTransformer):
         super().__init__(source)
         self.requester = requester
 
+        self.duration = data.get('duration')
+        self.is_live = data.get('is_live')
         self.title = data.get('title')
-        self.progress = 0
         self.web_url = data.get('webpage_url')
 
         # YTDL info dicts (data) have other useful information you might want
@@ -571,7 +572,7 @@ class Audio(commands.Cog):
 
         #make and split message
         upcoming = list(itertools.islice(queue._queue, startPosition, (startPosition + numPrPage)))
-        message = '\n'.join('**{}** - {}'.format((timedelta(seconds=_['duration']) if _['duration'] != 0 else  'livestream'), _['title'],) for _ in upcoming)
+        message = '\n'.join('{} - **{}**'.format((timedelta(seconds=_['duration']) if _['duration'] != 0 else  'livestream'), _['title'],) for _ in upcoming)
         messageParts = message_split(message, length=1950)
 
         #send messages

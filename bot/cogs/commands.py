@@ -105,7 +105,7 @@ class Other(commands.Cog):
             embed = discord.Embed().set_image(url=imageUrl)
             await ctx.send(embed=embed)
         else:
-            await ctx.send("No results found for {search}")
+            await ctx.send(f"No results found for {search}")
 
 
 

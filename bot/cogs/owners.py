@@ -15,7 +15,7 @@ from common.util_h import message_split
 class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.outdated_reminder.start()
+        #self.outdated_reminder.start()
 
     @tasks.loop(hours=168.0)
     async def outdated_reminder(self):
@@ -30,7 +30,7 @@ class Owners(commands.Cog):
 
         try:
             output = future.result()
-            update_str = "--- {} ---\nUPDATE CHECK".format(datetime_ext.now())
+            update_str = f"--- {datetime_ext.now()} ---\nUPDATE CHECK"
 
             update_content = message_split(output)
 
@@ -40,7 +40,7 @@ class Owners(commands.Cog):
 
                 await dm.send(update_str)
                 for part in update_content:
-                    await dm.send("```{}```".format(part))
+                    await dm.send(f"```{part}```")
 
             print(update_content)
             print("Finished the outdated component check...")
@@ -70,27 +70,27 @@ class Owners(commands.Cog):
         try:
             self.client.load_extension(module)
         except commands.ExtensionError as e:
-            await ctx.send(f'{e.__class__.__name__}: {e}')
+            await ctx.send(f"{e.__class__.__name__}: {e}")
         else:
-            await ctx.send('\N{OK HAND SIGN}')
+            await ctx.send("\N{OK HAND SIGN}")
 
     @commands.command(hidden=True)
     async def unload(self, ctx, *, module):
         try:
             self.client.unload_extension(module)
         except commands.ExtensionError as e:
-            await ctx.send(f'{e.__class__.__name__}: {e}')
+            await ctx.send(f"{e.__class__.__name__}: {e}")
         else:
-            await ctx.send('\N{OK HAND SIGN}')
+            await ctx.send("\N{OK HAND SIGN}")
 
     @commands.command(hidden=True)
     async def reload(self, ctx, *, module):
         try:
             self.client.reload_extension(module)
         except commands.ExtensionError as e:
-            await ctx.send(f'{e.__class__.__name__}: {e}')
+            await ctx.send(f"{e.__class__.__name__}: {e}")
         else:
-            await ctx.send('\N{OK HAND SIGN}')
+            await ctx.send("\N{OK HAND SIGN}")
 
     @commands.command(
         name = 'refreshconf',
@@ -101,7 +101,7 @@ class Owners(commands.Cog):
         self.client.command_prefix = conf['commandPrefix']
         self.client.owner_ids= conf['ownerIds']
 
-        await ctx.send('\N{OK HAND SIGN}')
+        await ctx.send("\N{OK HAND SIGN}")
 
 #
 # SETUP

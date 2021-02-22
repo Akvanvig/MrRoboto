@@ -24,10 +24,10 @@ from websockets import InvalidHandshake, WebSocketProtocolError
 
 _DATEFORMAT = '%Y-%m-%d %H:%M:%S'
 _UNITS = {
-    's':'seconds', 
-    'm':'minutes', 
-    'h':'hours', 
-    'd':'days', 
+    's':'seconds',
+    'm':'minutes',
+    'h':'hours',
+    'd':'days',
     'w':'weeks'
 }
 _TIMEREG = re.compile(r"(?P<val>\d+)(?P<unit>[smhdw]?)", flags=re.I)
@@ -63,7 +63,7 @@ class datetime_ext(datetime):
         try:
             return cls.from_str(argument)
         except ValueError:
-            raise ArgumentParsingError('Could not parse "{}" to a valid date.'.format(argument))
+            raise ArgumentParsingError(f'Could not parse "{argument}" to a valid date.')
 
     @classmethod
     def now(cls):
@@ -75,7 +75,7 @@ class timedelta_ext(timedelta):
         parsed_time = {_UNITS.get(m.group('unit').lower(), 'seconds'): int(m.group('val')) for m in _TIMEREG.finditer(argument)}
 
         if not parsed_time:
-            raise ArgumentParsingError('Could not parse "{}" to a valid time.'.format(argument))
+            raise ArgumentParsingError(f'Could not parse "{argument}" to a valid time.')
 
         return cls(**parsed_time)
 
@@ -135,13 +135,13 @@ class Task:
         if not self.failed_exc is None:
             return True
         return False
-        
+
     def start(self):
-        if self._task is not None and not self._task.done():            
-            raise RuntimeError('Task is already launched and is not completed.')
+        if self._task is not None and not self._task.done():
+            raise RuntimeError("Task is already launched and is not completed.")
 
         self._task = self._loop.create_task(self._start())
-        
+
         return self._task
 
     def stop(self):

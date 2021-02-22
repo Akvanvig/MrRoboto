@@ -29,7 +29,7 @@ class Other(commands.Cog):
     )
     async def latency(self, ctx):
         """Returns latency between the bot and the Discord servers"""
-        await ctx.send("Bot latency is {:.2f} ms".format(self.client.latency))
+        await ctx.send(f"Bot latency is {self.client.latency:.2f} ms")
 
     @commands.command(
         name='choose'
@@ -39,7 +39,7 @@ class Other(commands.Cog):
         choices = ctx.message.clean_content.split(" ")
         if len(choices) <= 1:
             raise commands.UserInputError("Must specify choices")
-        await ctx.send('{} has been chosen'.format(random.choice(choices)))
+        await ctx.send(f"'{random.choice(choices)}' has been chosen")
 
 
     @commands.command(
@@ -77,7 +77,7 @@ class Other(commands.Cog):
         ]
         lenTitle = len(max([i['title'] for i in users], key=len))
         lenName = len(max([i['name'] for i in users], key=len))
-        fmt = '\n'.join("{0:>{1}} -- {2:{3}}".format(_["title"], lenTitle, _["name"], lenName) for _ in users)
+        fmt = '\n'.join(f"{_['title']:>{lenTitle}} -- {_['name']:{lenName}}" for _ in users)
         embed = discord.Embed(title='Credits', description=fmt)
 
         await ctx.send(embed=embed)
@@ -93,7 +93,7 @@ class Other(commands.Cog):
         search: string searchterm, separate keywords using space or *
         """
         search = search.replace(' ', '*')
-        searchUrl = 'https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=1&tags={}'.format(urllib.parse.quote_plus(search))
+        searchUrl = f"https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=1&tags={urllib.parse.quote_plus(search)}"
 
         #Feching data
         webpage = urllib.request.urlopen(searchUrl)
@@ -105,7 +105,7 @@ class Other(commands.Cog):
             embed = discord.Embed().set_image(url=imageUrl)
             await ctx.send(embed=embed)
         else:
-            await ctx.send('No results found for {}'.format(search))
+            await ctx.send("No results found for {search}")
 
 
 

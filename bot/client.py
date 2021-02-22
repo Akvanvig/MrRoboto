@@ -32,10 +32,10 @@ class MrRoboto(commands.AutoShardedBot):
         self.db = PostgresDB()
 
     async def on_ready(self):
-        print('Logged in as')
+        print("Logged in as")
         print(self.user.name)
         print(self.user.id)
-        print('------')
+        print("------")
 
     async def on_command(self, ctx):
         pass
@@ -53,22 +53,22 @@ class MrRoboto(commands.AutoShardedBot):
         if isinstance(error, commands.CommandInvokeError):
             error = error.original
 
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("{}: {}".format(error.__class__.__name__, error))
+        if issubclass(type(error), commands.UserInputError):
+            await ctx.send(f"{error.__class__.__name__}: {error}")
 
         elif isinstance(error, commands.CommandNotFound):
-            await ctx.send("Command \'{}\' not found".format(ctx.invoked_with))
+            await ctx.send(f"Command '{ctx.invoked_with}' not found")
 
         elif isinstance(error, commands.errors.CheckFailure):
-            await ctx.send("{} is not allowed to run {} in {}. This incident will be reported".format(ctx.message.author, ctx.invoked_with, ctx.message.channel))
+            await ctx.send(f"{ctx.message.author} is not allowed to run {ctx.invoked_with} in {ctx.message.channel}. This incident will be reported")
 
         elif isinstance(error, commands.errors.CommandOnCooldown):
-            await ctx.send("Command \'{}\' is on cooldown for {:.2f} seconds".format(ctx.invoked_with, error.retry_after))
+            await ctx.send(f"Command '{ctx.invoked_with}' is on cooldown for {error.retry_after:.2f} seconds")
 
         else:
             print(error.__class__)
             print(error)
-            await ctx.send("Command \'{}\' is not working properly, contact your local developer :)".format(ctx.invoked_with))
+            await ctx.send(f"Command '{ctx.invoked_with}' is not working properly, contact your local developer :)")
 #
 # MAIN
 #

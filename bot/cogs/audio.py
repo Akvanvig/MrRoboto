@@ -40,7 +40,7 @@ class SongList():
             audioList = get_json(self.audioJsonPath)
             for v in audioList:
                 songs.append(Song(v['name'], v['category'], v['path'], v['aliases']))
-            print('Songlist imported from {}'.format(self.audioJsonPath))
+            print(f"Songlist imported from {self.audioJsonPath}")
         return songs
 
     def exportAudioJson(self):
@@ -75,7 +75,7 @@ class SongList():
                 print(song.get_json())
                 resultlist.append(song)
 
-        print('Songlists have been merged')
+        print("Songlists have been merged")
         return resultlist
 
     # Adds an alias to a song object
@@ -195,7 +195,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
             else:
                 return None
 
-        await ctx.send('```ini\n[Added {} to the Queue.]\n```'.format(data["title"]), delete_after=15)
+        await ctx.send(f"```ini\n[Added {data['title']} to the Queue.]\n```", delete_after=15)
 
         if download:
             source = ytdl.prepare_filename(data)
@@ -280,8 +280,7 @@ class MusicPlayer:
                     source = await YTDLSource.regather_stream(source, loop=self.client.loop)
                 except Exception as e:
                     print(e)
-                    await self._channel.send('There was an error processing your song.\n'
-                                             '```css\n[{}]\n```'.format(e))
+                    await self._channel.send(f"There was an error processing your song.\n```css\n[{e}]\n```")
                     continue
 
 
@@ -289,7 +288,7 @@ class MusicPlayer:
             self.current = source
 
             self._guild.voice_client.play(source, after=lambda _: self.client.loop.call_soon_threadsafe(self.next.set))
-            self.np = await self._channel.send('**Now Playing:** `{}` requested by `{}`'.format(source.title, source.requester))
+            self.np = await self._channel.send(f"**Now Playing:** `{source.title}` requested by `{source.requester}`")
             await self.next.wait()
 
             # Make sure the FFmpeg process is cleaned up.
@@ -310,7 +309,7 @@ class Audio(commands.Cog):
     __slots__ = ('client', 'players')
 
     def __init__(self, client):
-        audiofilesPath = os.path.abspath(os.path.join(__file__ , "../../../media"))
+        audiofilesPath = os.path.abspath(os.path.join(__file__ , '../../../media'))
         audioJsonPath = os.path.join(config_h.CONFIG_PATH, 'audio.json')
 
         self.client = client
@@ -346,7 +345,7 @@ class Audio(commands.Cog):
             await ctx.send('Error connecting to Voice Channel. '
                            'Please make sure you are in a valid channel or provide me with one')
 
-        print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+        print(f"Ignoring exception in command {ctx.command}:", file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     def get_player(self, ctx):
@@ -377,8 +376,8 @@ class Audio(commands.Cog):
             try:
                 channel = ctx.author.voice.channel
             except AttributeError:
-                await ctx.send('```css\n[ No channel to join. Please either specify a valid channel or join one. ]\n```', delete_after=20)
-                raise InvalidVoiceChannel('No channel to join. Please either specify a valid channel or join one.')
+                await ctx.send("```css\n[ No channel to join. Please either specify a valid channel or join one. ]\n```", delete_after=20)
+                raise InvalidVoiceChannel("No channel to join. Please either specify a valid channel or join one.")
 
         vc = ctx.voice_client
 
@@ -388,14 +387,14 @@ class Audio(commands.Cog):
             try:
                 await vc.move_to(channel)
             except asyncio.TimeoutError:
-                raise VoiceConnectionError('Moving to channel: {} timed out.'.format(channel))
+                raise VoiceConnectionError(f"Moving to channel: {channel} timed out.")
         else:
             try:
                 await channel.connect()
             except asyncio.TimeoutError:
-                raise VoiceConnectionError('Connecting to channel: {} timed out.'.format(channel))
+                raise VoiceConnectionError(f"Connecting to channel: {channel} timed out.")
 
-        await ctx.send('Connected to: {}'.format(channel), delete_after=20)
+        await ctx.send(f"Connected to: {channel}", delete_after=20)
 
 
     @commands.command(
@@ -425,7 +424,7 @@ class Audio(commands.Cog):
             player = self.get_player(ctx)
             await player.queue.put(source)
         else:
-            await ctx.send('Could not find "{}" on youtube'.format(search))
+            await ctx.send(f'Could not find "{search}" on youtube')
 
     @commands.command(
         name='play',
@@ -452,23 +451,23 @@ class Audio(commands.Cog):
             songs = self.songlist.getListCategory(queryLower)
             listSongs = list(songs)
             random.shuffle(listSongs)
-            print('Requested list {}'.format(query))
+            print(f"Requested list {query}")
             for song in listSongs:
                 path = os.path.join(self.audiofilesPath, song.getFilepath())
                 source = await YTDLSource.create_source_local(ctx, path, song.getBasename(), loop=self.client.loop, notifyQueue=False)
                 await player.queue.put(source)
-            await ctx.send('Requested list {} has been added to queue'.format(query))
+            await ctx.send(f"Requested list {search} has been added to queue")
 
         # If songname or alias for song is given, that single song will be played
         elif queryLower in songDict:
             path = os.path.join(self.audiofilesPath, songDict[queryLower])
-            print('Requested song {}'.format(path))
+            print(f"Requested song {path}")
             source = await YTDLSource.create_source_local(ctx, path, query, loop=self.client.loop)
             await player.queue.put(source)
 
         # If not found in categories nor songaliases
         else:
-            await ctx.send('Could not find "{}" locally'.format(query))
+            await ctx.send(f'Could not find "{query}" locally')
 
 
     @commands.command(
@@ -479,12 +478,12 @@ class Audio(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_playing():
-            return await ctx.send('I am not currently playing anything!', delete_after=20)
+            return await ctx.send("I am not currently playing anything!", delete_after=20)
         elif vc.is_paused():
             return
 
         vc.pause()
-        await ctx.send('**{}**: Paused the song!'.format(ctx.author))
+        await ctx.send(f"**{ctx.author}**: Paused the song!")
 
     @commands.command(
         name='resume'
@@ -494,12 +493,12 @@ class Audio(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            return await ctx.send('I am not currently playing anything!', delete_after=20)
+            return await ctx.send("I am not currently playing anything!", delete_after=20)
         elif not vc.is_paused():
             return
 
         vc.resume()
-        await ctx.send('**{}**: Resumed the song!'.format(ctx.author))
+        await ctx.send(f"**{ctx.author}**: Resumed the song!")
 
 
     @commands.command(
@@ -516,7 +515,7 @@ class Audio(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            return await ctx.send('I am not currently playing anything!', delete_after=20)
+            return await ctx.send("I am not currently playing anything!", delete_after=20)
 
         if vc.is_paused():
             pass
@@ -532,10 +531,10 @@ class Audio(commands.Cog):
             for i in range(x):
                 queue.get_nowait()
         elif count != None and (count >= 0 or count <= lim):
-            raise commands.UserInputError("Specify a number between 1 and {}".format(lim))
+            raise commands.UserInputError(f"Specify a number between 1 and {lim}")
 
         vc.stop()
-        await ctx.send('**{}**: Skipped the song!'.format(ctx.author))
+        await ctx.send(f"**{ctx.author}**: Skipped the song!")
 
 
     @commands.group(
@@ -554,11 +553,11 @@ class Audio(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            return await ctx.send('I am not currently connected to voice!', delete_after=20)
+            return await ctx.send("I am not currently connected to voice!", delete_after=20)
 
         queue = (self.get_player(ctx)).queue
         if queue.empty():
-            return await ctx.send('There are currently no more queued songs.')
+            return await ctx.send("There are currently no more queued songs.")
 
         #fetches some numbers for later
         startPosition = (page - 1) * numPrPage
@@ -573,15 +572,15 @@ class Audio(commands.Cog):
 
         #make and split message
         upcoming = list(itertools.islice(queue._queue, startPosition, (startPosition + numPrPage)))
-        message = '\n'.join('{} - **{}**'.format((timedelta(seconds=_['duration']) if _['duration'] != 0 else  'livestream'), _['title'],) for _ in upcoming)
+        message = '\n'.join(f"{(timedelta(seconds=_['duration']) if _['duration'] != 0 else  'livestream')} - **{_['title']}**" for _ in upcoming)
         messageParts = message_split(message, length=1950)
 
         #send messages
         for i in range(len(messageParts)):
             if i == 0:
-                embed = discord.Embed(title='Queue - page {}'.format(page), description=messageParts[i])
+                embed = discord.Embed(title=f"Queue - page {page}", description=messageParts[i])
             else:
-                embed = discord.Embed(title='Queue - page {} - part {}'.format(page, i+1), description=messageParts[i])
+                embed = discord.Embed(title=f"Queue - page {page} - part {i+1}", description=messageParts[i])
             await ctx.send(embed=embed)
 
 
@@ -594,7 +593,7 @@ class Audio(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            return await ctx.send('I am not currently connected to voice!', delete_after=20)
+            return await ctx.send("I am not currently connected to voice!", delete_after=20)
 
         lengthQueue = (self.get_player(ctx)).queue.qsize()
         await ctx.invoke(self.client.get_command('queue'), page=1, numPrPage=lengthQueue)
@@ -608,13 +607,13 @@ class Audio(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            return await ctx.send('I am not currently connected to voice!', delete_after=20)
+            return await ctx.send("I am not currently connected to voice!", delete_after=20)
 
         player = self.get_player(ctx)
         if not player.current:
-            return await ctx.send('I am not currently playing anything!')
+            return await ctx.send("I am not currently playing anything!")
 
-        player.np = await ctx.send('**Now Playing:** {}\n requested by {}'.format(vc.source.title, vc.source.requester))
+        player.np = await ctx.send(f"**Now Playing:** {vc.source.title}\n requested by {vc.source.requester}")
 
 
 
@@ -632,10 +631,10 @@ class Audio(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            return await ctx.send('I am not currently connected to voice!', delete_after=20)
+            return await ctx.send("I am not currently connected to voice!", delete_after=20)
 
-        if not 0 < vol < 101:
-            return await ctx.send('Please enter a value between 1 and 100.')
+        if not 0 < vol < 200:
+            return await ctx.send("Please enter a value between 1 and 100.")
 
         player = self.get_player(ctx)
 
@@ -643,7 +642,7 @@ class Audio(commands.Cog):
             vc.source.volume = vol / 100
 
         player.volume = vol / 100
-        await ctx.send('**`{}`**: Set the volume to **{}%**'.format(ctx.author, vol))
+        await ctx.send(f"**`{ctx.author}`**: Set the volume to **{vol}%**")
 
 
 
@@ -660,7 +659,7 @@ class Audio(commands.Cog):
         vc = ctx.voice_client
 
         if not vc or not vc.is_connected():
-            return await ctx.send('I am not currently playing anything!', delete_after=20)
+            return await ctx.send("I am not currently playing anything!", delete_after=20)
 
         await self.cleanup(ctx.guild)
 
@@ -703,9 +702,9 @@ class Audio(commands.Cog):
 
         for i in range(len(messageParts)):
             if i == 0:
-                embed = discord.Embed(title='Songs {} - aliases'.format(category), description=messageParts[i])
+                embed = discord.Embed(title=f"Songs {category} - aliases", description=messageParts[i])
             else:
-                embed = discord.Embed(title='Songs {} {} - aliases'.format(category, i+1), description=messageParts[i])
+                embed = discord.Embed(title=f"Songs {category} {i+1} - aliases", description=messageParts[i])
             await ctx.send(embed=embed)
 
 #

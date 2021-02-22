@@ -4,6 +4,10 @@ import discord
 
 from discord.ext import commands
 
+import urllib.request
+import urllib.parse
+import xml.etree.ElementTree as ET
+
 #
 # CLASSES
 #
@@ -77,6 +81,33 @@ class Other(commands.Cog):
         embed = discord.Embed(title='Credits', description=fmt)
 
         await ctx.send(embed=embed)
+
+    @commands.command(
+        name = "rule34"
+    )
+    @commands.is_nsfw() #Only works if in nsfw channel
+    async def rule_thirtyfour(self, ctx, *, search: str):
+        """Search for rule34 images
+        Will only work in nsfw channels
+        ------------
+        search: string searchterm, separate keywords using space or *
+        """
+        search = search.replace(' ', '*')
+        searchUrl = 'https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=1&tags={}'.format(urllib.parse.quote_plus(search))
+
+        #Feching data
+        webpage = urllib.request.urlopen(searchUrl)
+
+        #Fetching response from xml
+        tree = ET.fromstring(webpage.read())
+        if len(tree):
+            imageUrl = tree[0].get('file_url')
+            embed = discord.Embed().set_image(url=imageUrl)
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send('No results found for {}'.format(search))
+
+
 
 #
 # SETUP

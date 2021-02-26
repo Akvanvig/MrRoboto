@@ -94,7 +94,7 @@ class Other(commands.Cog):
         search: string searchterm, separate keywords using space or *
         """
         search = search.replace(' ', '*')
-        searchUrl = f"https://rule34.xxx/index.php?page=dapi&s=post&q=index&limit=1&tags={urllib.parse.quote_plus(search)}"
+        searchUrl = f"https://rule34.xxx/index.php?page=dapi&s=post&q=index&tags={urllib.parse.quote_plus(search)}"
 
         #Feching data
         webpage = urllib.request.urlopen(searchUrl)
@@ -102,9 +102,8 @@ class Other(commands.Cog):
         #Fetching response from xml
         tree = ET.fromstring(webpage.read())
         if len(tree):
-            imageUrl = tree[0].get('file_url')
-            embed = discord.Embed().set_image(url=imageUrl)
-            await ctx.send(embed=embed)
+            imageUrl = tree[random.randrange(len(tree))].get('file_url')
+            await ctx.send(imageUrl)
         else:
             await ctx.send(f"No results found for {search}")
 

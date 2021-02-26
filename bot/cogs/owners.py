@@ -15,7 +15,7 @@ from common.util_h import message_split
 class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
-        #self.outdated_reminder.start()
+        self.outdated_reminder.start()
 
     @tasks.loop(hours=168.0)
     async def outdated_reminder(self):

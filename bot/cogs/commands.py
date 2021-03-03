@@ -69,6 +69,7 @@ class Other(commands.Cog):
         """Show development team behind this magnificent bot"""
         users = [
             {"title":"**Lead Project Manager**, **Service Manager**", "name":"**Adis Pinjic**"},
+            {"title":"**Chief Technical Officer of the CTO's Department**", "**Cuck**", "name":"**Eirik Habbestad**"},
             {"title":"**Chief Systems Architect** & **Qality Assurance Manager**", "name":"**Audun Solemdal**"},
             {"title":"**Chief Orkitect** & **Grand Master of the Memologists**", "name":"**Eirik 'El Lolando' Andersen**"},
             {"title":"**Chancellor of the Code** & **President of Marketing**", "name":"**Andreas 'Esteban' Hennestad**"},

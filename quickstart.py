@@ -13,29 +13,29 @@ import subprocess
 FILE_DIR = os.path.dirname(__file__)
 
 APT_PACKAGES = [
-    'libffi-dev', 
-    'libnacl-dev', 
-    'libpq-dev', 
-    'python3-pip', 
+    'libffi-dev',
+    'libnacl-dev',
+    'libpq-dev',
+    'python3-pip',
     'ffmpeg'
 ]
 
 EXAMPLE_BOT_CONFIG = {
-    'commandPrefix': '?', 
+    'commandPrefix': '?',
     'ytdlFormatOptions': {
         'format': 'bestaudio/best',
-        'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s', 
-        'restrictfilenames': True, 
-        'noplaylist': True, 
-        'nocheckcertificate': True, 
-        'ignoreerrors': False, 
-        'logtostderr': False, 
-        'quiet': True, 
-        'no_warnings': True, 
-        'default_search': 'auto', 
+        'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+        'restrictfilenames': True,
+        'noplaylist': True,
+        'nocheckcertificate': True,
+        'ignoreerrors': False,
+        'logtostderr': False,
+        'quiet': True,
+        'no_warnings': True,
+        'default_search': 'auto',
         'source_address': '0.0.0.0',
         "HighWaterMark":3145728
-    }, 
+    },
     "ffmpeg_options": "-vn",
     "ffmpeg_before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5"
 }
@@ -48,7 +48,9 @@ EXAMPLE_BOT_SECRETS = {
         'database': 'postgres',
         'host': 'localhost',
         'password': 'password'
-    }
+    },
+    "hereApiToken": "<A Rest API Key from developer.here.com>",
+    "apiUserAgentIdentification": "roboto/v0.1 <contact email>"
 }
 
 KUBE_BOT_CONFIG = {
@@ -84,7 +86,7 @@ KUBE_DB_SECRETS = {
         'name': 'robotodb-secrets',
         'namespace': 'roboto',
         'labels': {
-            'app': 'roboto-postgres' 
+            'app': 'roboto-postgres'
         }
     },
     'data': {
@@ -141,7 +143,7 @@ def install_requirements_windows():
     try:
         print("...Attempting to download ffmpeg")
         with urlopen(Request(
-            url = "https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-latest-win32-static.zip", 
+            url = "https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-latest-win32-static.zip",
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'})
         ) as urlObj:
             url_file = BytesIO(urlObj.read())
@@ -153,16 +155,16 @@ def install_requirements_windows():
         print("...Extracting ffmpeg from archive")
         for zip_info in zipObj.infolist():
             if zip_info.filename[-1] == '/': continue
-            
+
             basename = os.path.basename(zip_info.filename)
 
             if not basename == 'ffmpeg.exe': continue
-            
+
             zip_info.filename = os.path.join("bot", basename)
             zipObj.extract(zip_info)
             break
         print("...Success, extracted ffmpeg.exe from archive")
-    
+
 def install_requirements_linux():
     # For now let's assume the distro is debian
     # or else we have to install another pip package to detect the distro
@@ -175,7 +177,7 @@ def install_requirements_linux():
     except subprocess.CalledProcessError:
         raise ReqError("...Error, failed to download dev dependencies")
 
-def install_requirements(*, local : bool):  
+def install_requirements(*, local : bool):
     print("\n[INSTALLING REQUIREMENTS]")
 
     try:
@@ -190,7 +192,7 @@ def install_requirements(*, local : bool):
 
             # Download and install pip requirements
             install_requirements_pip()
-            
+
         # Kubernetes
         else:
             pass

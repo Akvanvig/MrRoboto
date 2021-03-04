@@ -19,6 +19,8 @@
     - data.ownerIds
     - data.postgresql.password
     - data.postgresql.host (With default settings "svc-robotodb.roboto.svc")
+    - data.hereApiToken (For weather function)
+    - data.apiUserAgentIdentification (For weather function)
   - db_secrets.json
     - data.POSTGRES_PASSWORD (This need to be the same as in bot_secret.json)
 #### 2. Update files in config folder with correct info for your setup. Likely changes are:

@@ -1,13 +1,16 @@
 import asyncio
 import random
 import discord
+import json
 
 from discord.ext import commands
 
+from common import config_h
+
 import urllib.request
 import urllib.parse
+import datetime
 import xml.etree.ElementTree as ET
-
 #
 # CLASSES
 #
@@ -68,8 +71,8 @@ class Other(commands.Cog):
     async def credits(self, ctx):
         """Show development team behind this magnificent bot"""
         users = [
-            {"title":"**Lead Project Manager**, **Service Manager**", "name":"**Adis Pinjic**"},
-            {"title":"**Chief Technical Officer of the CTO's Department**", "**Cuck**", "name":"**Eirik Habbestad**"},
+            {"title":"**Lead Project Manager** & **Service Manager**", "name":"**Adis Pinjic**"},
+            {"title":"**Chief Technical Officer of the CTO's Department** & **Cuck**", "name":"**Eirik Habbestad**"},
             {"title":"**Chief Systems Architect** & **Qality Assurance Manager**", "name":"**Audun Solemdal**"},
             {"title":"**Chief Orkitect** & **Grand Master of the Memologists**", "name":"**Eirik 'El Lolando' Andersen**"},
             {"title":"**Chancellor of the Code** & **President of Marketing**", "name":"**Andreas 'Esteban' Hennestad**"},
@@ -85,6 +88,56 @@ class Other(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(
+        name='weather'
+    )
+    async def weather(self, ctx, *, search: str, lat="59.9170", lon="10.7274"):
+        """returns weather for given position"""
+        #Get API-token
+        config = config_h.get()
+        if not "hereApiToken" in config.keys():
+            print("No Here API-token found, a new one can be created at developer.here.com")
+            #raise exception
+            return
+        hereApiToken = config["hereApiToken"] #A Rest API Key from developer.here.com
+
+        #Get coordinates
+        hereApiUrl = f"https://discover.search.hereapi.com/v1/discover?at={lat},{lon}&limit=1&q={urllib.parse.quote_plus(search)}&apiKey={hereApiToken}"
+        response = urllib.request.urlopen(hereApiUrl)
+        jsonResponse = json.load(response)
+        resultCoordinates = jsonResponse["items"][0]["position"]
+        resultLocation = jsonResponse["items"][0]["address"]
+
+        #fetch data
+        searchUrl = f"https://api.met.no/weatherapi/locationforecast/2.0/compact.json?lat={round(resultCoordinates['lat'],3)}&lon={round(resultCoordinates['lng'],3)}"
+        header = {"User-Agent": config['apiUserAgentIdentification']} #Format "application/version contactaddress"
+        request = urllib.request.Request(searchUrl, headers=header)
+        response = urllib.request.urlopen(request)
+        jsonResponse = json.load(response)
+        metaData = jsonResponse["properties"]["meta"]
+        timeseries = jsonResponse["properties"]["timeseries"]
+
+        #Removing some unneeded data ¯\_(ツ)_/¯
+        data = []
+        for time in timeseries:
+            # only checking temp midday cause I'm lazy and probably good enough, might implement properly some other time
+            if time["time"].endswith("T12:00:00Z"):
+                data.append(time)
+        embed = discord.Embed(title=f"Weather Forecast for {resultLocation['city']}, {resultLocation['state']}, {resultLocation['countryName']}")
+        dateformat = "%Y-%m-%dT%H:%M:%fZ"
+
+        #Adding to embeds
+        for day in data:
+            dayName = (datetime.datetime.strptime(day["time"], dateformat)).strftime("%A")
+            extraNote = ""
+            if day["data"]["instant"]["details"]["wind_speed"] > 32.6: # Why not check windspeeds as well
+                extraNote = f"{day['data']['instant']['details']['wind_speed']} {metaData['units']['wind_speed']} winds"
+            embed.add_field(name=dayName, value=f"{day['data']['instant']['details']['air_temperature']} {metaData['units']['air_temperature']} -- {day['data']['next_6_hours']['summary']['symbol_code']}  {extraNote}")
+
+        #sending :)
+        await ctx.send(embed=embed)
+
+
+    @commands.command(
         name = "rule34"
     )
     @commands.is_nsfw() #Only works if in nsfw channel
@@ -94,7 +147,7 @@ class Other(commands.Cog):
         ------------
         search: string searchterm, separate keywords using space or *
         """
-        search = search.replace(' ', '*')
+        search = search.replace(" ", "*")
         searchUrl = f"https://rule34.xxx/index.php?page=dapi&s=post&q=index&tags={urllib.parse.quote_plus(search)}"
 
         #Feching data
@@ -103,7 +156,7 @@ class Other(commands.Cog):
         #Fetching response from xml
         tree = ET.fromstring(webpage.read())
         if len(tree):
-            imageUrl = tree[random.randrange(len(tree))].get('file_url')
+            imageUrl = tree[random.randrange(len(tree))].get("file_url")
             await ctx.send(imageUrl)
         else:
             await ctx.send(f"No results found for {search}")

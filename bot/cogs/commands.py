@@ -90,10 +90,14 @@ class Other(commands.Cog):
     @commands.command(
         name='weather'
     )
-    async def weather(self, ctx, *, search: str, lat="59.9170", lon="10.7274"):
+    async def weather(self, ctx, *, search: str):
         """returns weather for given position"""
-        #Get API-token
+        #variables
+        lat="59.9170"
+        lon="10.7274"
         config = config_h.get()
+
+        #Get API-token
         if not "hereApiToken" in config.keys():
             print("No Here API-token found, a new one can be created at developer.here.com")
             #raise exception

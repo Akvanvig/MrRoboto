@@ -122,7 +122,7 @@ class Other(commands.Cog):
             # only checking temp midday cause I'm lazy and probably good enough, might implement properly some other time
             if time["time"].endswith("T12:00:00Z"):
                 data.append(time)
-        embed = discord.Embed(title=f"Weather Forecast for {resultLocation['city']}, {resultLocation['state']}, {resultLocation['countryName']}")
+        embed = discord.Embed(title=f"Weather Forecast for {resultLocation['label']}")
         dateformat = "%Y-%m-%dT%H:%M:%fZ"
 
         #Adding to embeds
@@ -131,7 +131,7 @@ class Other(commands.Cog):
             extraNote = ""
             if day["data"]["instant"]["details"]["wind_speed"] > 32.6: # Why not check windspeeds as well
                 extraNote = f"{day['data']['instant']['details']['wind_speed']} {metaData['units']['wind_speed']} winds"
-            embed.add_field(name=dayName, value=f"{day['data']['instant']['details']['air_temperature']} {metaData['units']['air_temperature']} -- {day['data']['next_6_hours']['summary']['symbol_code']}  {extraNote}")
+            embed.add_field(name=dayName, value=f"{day['data']['instant']['details']['air_temperature']} {metaData['units']['air_temperature']}\n{day['data']['next_6_hours']['details']['precipitation_amount']} {metaData['units']['precipitation_amount']}\n{day['data']['next_6_hours']['summary']['symbol_code']}  {extraNote}")
 
         #sending :)
         await ctx.send(embed=embed)

@@ -1,6 +1,5 @@
 discord.py[voice]
 websockets
 youtube-dl
-psycopg2
-sqlalchemy<=1.3
-aiopg
+sqlalchemy
+asyncpg

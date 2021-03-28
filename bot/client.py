@@ -74,7 +74,7 @@ class MrRoboto(commands.AutoShardedBot):
 #
 
 async def start(client : MrRoboto, conf):
-    await client.db.start(**conf['postgresql'])
+    await client.db.start(conf['postgresql'])
     await client.start(conf['discordToken'], bot=True, reconnect=True)
 
 async def stop(client : MrRoboto):

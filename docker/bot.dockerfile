@@ -20,4 +20,4 @@ RUN /bin/bash ./install-packages.sh
 CMD python3 /MrRoboto/bot/client.py
 
 # run from repo root folder
-# docker build --no-cache -t ghcr.io/akvanvig/mrroboto_no-audio:arm64v8 -t ghcr.io/akvanvig/mrroboto_no-audio:latest -f .\docker\test.dockerfile . --build-arg ARCH=arm64v8
+# docker build --no-cache -t ghcr.io/akvanvig/mrroboto_no-audio:arm64v8 -t ghcr.io/akvanvig/mrroboto_no-audio:latest -f .\docker\bot.dockerfile . --build-arg ARCH=arm64v8

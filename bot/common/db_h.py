@@ -32,7 +32,7 @@ class PostgresDB:
             async with engine.begin() as conn:
                 await conn.run_sync(self.meta.create_all)
 
-    async def def stop(self):
+    async def stop(self):
         if self._wrapped_engine: 
             await _wrapped_engine.dispose()
             self._wrapped_engine = None

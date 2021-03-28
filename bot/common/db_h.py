@@ -29,10 +29,10 @@ class PostgresDB:
                 f"postgresql+asyncpg://{config['user']}:{config['password']}@{config['host']}/{config['database']}"
             )
 
-            async with engine.begin() as conn:
+            async with self._wrapped_engine.begin() as conn:
                 await conn.run_sync(self.meta.create_all)
 
     async def stop(self):
         if self._wrapped_engine: 
-            await _wrapped_engine.dispose()
+            await self._wrapped_engine.dispose()
             self._wrapped_engine = None

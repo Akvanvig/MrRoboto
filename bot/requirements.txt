@@ -2,3 +2,4 @@ discord.py[voice]
 websockets
 youtube-dl
 sqlalchemy
+asyncpg

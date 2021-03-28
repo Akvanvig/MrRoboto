@@ -63,7 +63,7 @@ class Admin(commands.Cog):
         await dm.send(f"You've been muted in {member.guild} for time period: {str(mutetime)}")
 
     async def _mute_save(self, member : Member, mutetime : timedelta_ext):
-        async with self.client.db.acquire() as conn:
+        async with self.client.db.begin() as conn:
             unmutedate = str(mutetime.to_datetime_now())
 
             await conn.execute(sa.dialects.postgresql.insert(self.muted_table).values(
@@ -76,7 +76,7 @@ class Admin(commands.Cog):
             ))
 
     async def _mute_delete(self, member : Member):
-        async with self.client.db.acquire() as conn:
+        async with self.client.db.begin() as conn:
             await conn.execute(self.muted_table.delete().where(
                 sa.and_(
                     self.muted_table.c.guild_id == member.guild.id,
@@ -85,10 +85,11 @@ class Admin(commands.Cog):
             ))
 
     async def _mute_restore(self):
-        async with self.client.db.acquire() as conn:
+        async with self.client.db.begin() as conn:
+            async_result = await conn.stream(self.muted_table.select())
             currentdate = datetime_ext.now()
 
-            async for row in conn.execute(self.muted_table.select()):
+            async for row in async_result:
                 guild = self.client.get_guild(row[self.muted_table.c.guild_id])
                 member = guild.get_member(row[self.muted_table.c.user_id])
                 unmutedate = datetime_ext.from_str(row[self.muted_table.c.unmutedate])

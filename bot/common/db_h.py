@@ -1,10 +1,5 @@
 import asyncio
-
 import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import create_async_engine
-
-from aiopg.sa import create_engine
-from psycopg2.errors import DuplicateTable
 
 #
 # CLASSES
@@ -25,7 +20,7 @@ class PostgresDB:
 
     async def start(self, config):
         if not self._wrapped_engine:
-            self._wrapped_engine = create_async_engine(
+            self._wrapped_engine = sa.ext.asyncio.create_async_engine(
                 f"postgresql+asyncpg://{config['user']}:{config['password']}@{config['host']}/{config['database']}"
             )
 

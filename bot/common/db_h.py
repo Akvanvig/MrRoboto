@@ -1,5 +1,6 @@
 import asyncio
 import sqlalchemy as sa
+from sqlalchemy.ext.asyncio import create_async_engine
 
 #
 # CLASSES
@@ -20,7 +21,7 @@ class PostgresDB:
 
     async def start(self, config):
         if not self._wrapped_engine:
-            self._wrapped_engine = sa.ext.asyncio.create_async_engine(
+            self._wrapped_engine = create_async_engine(
                 f"postgresql+asyncpg://{config['user']}:{config['password']}@{config['host']}/{config['database']}"
             )
 

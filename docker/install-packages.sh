@@ -2,6 +2,9 @@
 # Tell apt-get we're never going to be able to give manual feedback:
 export DEBIAN_FRONTEND=noninteractive
 
+#Speeds up building of PyNaCl wheel (halves container build time)
+export LIBSODIUM_MAKE_ARGS=-j
+
 #Installing required packages
 apt-get update
 apt-get -y upgrade

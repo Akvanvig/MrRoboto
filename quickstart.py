@@ -32,6 +32,7 @@ EXAMPLE_BOT_CONFIG = {
         'logtostderr': False,
         'quiet': True,
         'no_warnings': True,
+        'agelimit': 20,
         'default_search': 'auto',
         'source_address': '0.0.0.0',
         "HighWaterMark":3145728

@@ -642,7 +642,10 @@ class Audio(commands.Cog):
             vc.source.volume = vol / 100
 
         player.volume = vol / 100
-        await ctx.send(f"**`{ctx.author}`**: Set the volume to **{vol}%**")
+
+        # Only send message if volume between 0 and 100
+        if vol > 100:
+            await ctx.send(f"**`{ctx.author}`**: Set the volume to **{vol}%**")
 
 
 

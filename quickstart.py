@@ -137,17 +137,27 @@ def install_requirements_windows():
     from io import BytesIO
     from zipfile import ZipFile
 
-    url_file = None
-
     # Download and install ffmpeg
 
     try:
         print("...Attempting to download ffmpeg")
+        http_header = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'}
+
         with urlopen(Request(
-            url = "https://ffmpeg.zeranoe.com/builds/win32/static/ffmpeg-latest-win32-static.zip",
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36'})
-        ) as urlObj:
-            url_file = BytesIO(urlObj.read())
+            url = "https://www.gyan.dev/ffmpeg/builds/git-version",
+            headers = http_header)
+        ) as response:
+            content = response.read()
+            encoding = response.headers.get_content_charset('utf-8')
+            ffmpeg_version = content.decode(encoding)
+
+        print(f"...Latest ffmpeg git version is {ffmpeg_version}")
+
+        with urlopen(Request(
+            url = f"https://github.com/GyanD/codexffmpeg/releases/download/{ffmpeg_version}/ffmpeg-{ffmpeg_version}-essentials_build.zip",
+            headers = http_header)
+        ) as response:
+            url_file = BytesIO(response.read())
         print("...Success, downloaded ffmpeg")
     except (URLError, IncompleteRead):
         raise ReqError("...Error, failed to download ffmpeg")

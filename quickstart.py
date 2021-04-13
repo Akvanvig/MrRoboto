@@ -122,6 +122,15 @@ def input_yn(string : str) -> bool:
         elif answer in ('n', 'no'): return False
         else: print("Error, enter a valid input")
 
+def install_requirements_pip_dev():
+    try:
+        print("...Attempting to install dev requirements")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", os.path.join(FILE_DIR, "requirements-dev.txt")])
+        subprocess.check_call(["pre-commit", "install"])
+        print("...Success, installed dev requirements")
+    except subprocess.CalledProcessError:
+        raise ReqError("...Error, failed to download/install dev requirements")
+
 def install_requirements_pip():
     try:
         print("...Attempting to install pip requirements")
@@ -188,22 +197,26 @@ def install_requirements_linux():
     except subprocess.CalledProcessError:
         raise ReqError("...Error, failed to download dev dependencies")
 
-def install_requirements(*, local : bool):
+def install_requirements(*, local : bool, dev : bool):
     print("\n[INSTALLING REQUIREMENTS]")
 
     try:
+        if dev:
+            install_requirements_pip_dev()
+
         # Local
         if local:
             system_name = platform.system()
 
             # System specific install requirements
-            if system_name == 'Windows': install_requirements_windows()
-            elif system_name == 'Linux': install_requirements_linux()
-            else: raise CompatError("...Error, you are not on a supported system")
+            if system_name == 'Windows':
+                install_requirements_windows()
+            elif system_name == 'Linux':
+                install_requirements_linux()
+            else:
+                raise CompatError("...Error, you are not on a supported system")
 
-            # Download and install pip requirements
             install_requirements_pip()
-
         # Kubernetes
         else:
             pass
@@ -251,6 +264,7 @@ def main():
     # Ask for type
     # Ask if user wants to install requirements
     # Ask if user wants to generate example configs
+    # Ask if user is a developer
     use_local = input_yn("Input: \n (Y)es if you are using the bot locally\n (N)o if you are using kubernetes\n")
     print('')
 
@@ -260,8 +274,15 @@ def main():
         install_reqs = input_yn("Do you want to install all the requirements?")
         gen_configs = input_yn("Do you want to generate example config files?")
 
-    if install_reqs: install_requirements(local = use_local)
-    if gen_configs: generate_configs(local = use_local)
+    if install_reqs:
+        if input_yn("Are you planning on commiting to the MrRoboto repository?"):
+            is_dev = True
+        else:
+            is_dev = False
+
+        install_requirements(local = use_local, dev = is_dev)
+    if gen_configs:
+        generate_configs(local = use_local)
 
     print("\nQuickstart finished running")
 

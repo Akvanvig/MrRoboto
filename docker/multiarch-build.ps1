@@ -29,7 +29,7 @@ Foreach ($platform in $platforms){
 }
 
 ## Check if images created
-While (Get-Job -State "Running") {
+Do {
   $out = Get-Job
   $completed = Get-Job -State "Completed"
   ## Save logs to file and remove jobs
@@ -43,12 +43,12 @@ While (Get-Job -State "Running") {
     }
   }
   Write-Output $out
-  Start-Sleep 30
-}
+  Start-Sleep 15
+} While (Get-Job -State "Running")
 
 ## Check if any tasks failed
 If ($(Get-Job).Count -ne 0) {
-  Write-Output "You have failed jobs, check logs with:"
+  Write-Output "You likely have failed jobs, check logs with:"
   $out = Get-Job
   Foreach ($job in $out) {
     Write-Output "  Receive-Job -name $($job.name)"

@@ -10,7 +10,7 @@ COPY bot/requirements.txt ./bot/requirements.txt
 COPY docker/install-packages.sh ./bot/install-packages.sh
 
 ARG ARCH=arm64v8
-FROM ${ARCH}/python:3.8-slim-buster
+FROM ${ARCH}/python:3.9-slim-buster
 LABEL org.opencontainers.image.source https://github.com/Akvanvig/MrRoboto
 
 WORKDIR /MrRoboto/bot

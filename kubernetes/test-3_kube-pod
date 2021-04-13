@@ -8,14 +8,15 @@ metadata:
 spec:
   containers:
   - name: roboto
-    image: ghcr.io/akvanvig/mrroboto_test:latest
+    image: ghcr.io/akvanvig/mrroboto:latest
     command: ["python3", "-m", "http.server", "80"]
+    #command: ["python3","client.py"]
 
     volumeMounts:
-      - name: config
-        mountPath: MrRoboto/config/bot_config.json
-        subPath: bot_config.json
-        readOnly: true
+      #- name: config
+      #  mountPath: MrRoboto/config/bot_config.json
+      #  subPath: bot_config.json
+      #  readOnly: true
       - name: secrets
         mountPath: MrRoboto/config/bot_secrets.json
         subPath: bot_secrets.json

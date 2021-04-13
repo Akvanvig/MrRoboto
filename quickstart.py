@@ -126,7 +126,7 @@ def install_requirements_pip_dev():
     try:
         print("...Attempting to install dev requirements")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", os.path.join(FILE_DIR, "requirements-dev.txt")])
-        subprocess.check_call(["pre-commit", "install"])
+        subprocess.check_call([sys.executable, "-m", "pre_commit", "install"])
         print("...Success, installed dev requirements")
     except subprocess.CalledProcessError:
         raise ReqError("...Error, failed to download/install dev requirements")

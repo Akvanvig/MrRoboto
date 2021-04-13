@@ -1,8 +1,13 @@
 # Discord-bot-py
 
 ## Requirements:
+
+### User
 * Python3
 * Discord Auth-token
+
+### Dev
+* Git
 
 ## Installation:
 

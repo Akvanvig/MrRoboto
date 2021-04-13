@@ -9,7 +9,7 @@ $repository = "ghcr.io"
 # Functions
 $buildImage = {
   param($platform, $username, $repository)
-  docker build --no-cache -t "$repository/$username/mrroboto_no-audio:$platform" -t "$repository/$username/mrroboto:$platform" -f ./docker/bot.dockerfile . --build-arg ARCH=$platform
+  docker build --no-cache -t "$repository/$username/mrroboto_no-audio:$platform" -f ./docker/bot.dockerfile . --build-arg ARCH=$platform
 }
 
 # Pre-requisite tests
@@ -31,25 +31,38 @@ Foreach ($platform in $platforms){
 ## Check if images created
 While (Get-Job -State "Running") {
   $out = Get-Job
+  $completed = Get-Job -State "Completed"
+  ## Save logs to file and remove jobs
+  If ($completed) {
+    $completed | Foreach-Object {
+      $name = $_.name
+      $path = Get-Location
+      Receive-Job -name $name *>&1 >> "$path\$name.log"
+      Remove-Job -name $name
+      Write-Output "Saved output for job $name to $path\$name.log"
+    }
+  }
   Write-Output $out
   Start-Sleep 30
 }
 
-## Save logs to file and remove jobs
-Get-Job | Foreach-Object {
-  $name = $_.name
-  $path = Get-Location
-  Receive-Job -name $name *>&1 >> "$path\$name.log"
-  Remove-Job -name $name
-  Write-Output "Saved output for job $name to $path\$name.log"
+## Check if any tasks failed
+If ($(Get-Job).Count -ne 0) {
+  Write-Output "You have failed jobs, check logs with:"
+  $out = Get-Job
+  Foreach ($job in $out) {
+    Write-Output "  Receive-Job -name $($job.name)"
+  }
 }
-
 Write-Output "----"
-Write-Output "All jobs completed"
+Write-Output "All jobs finished"
+Write-Output "----"
 
-$expression = "docker manifest create $repository/$username/mrroboto:latest"
+$expressionA = "docker manifest create $repository/$username/mrroboto:latest"
+$expressionB = "docker manifest create $repository/$username/mrroboto:latest"
 Foreach ($platform in $platforms){
-  $expression = "$expression $('--amend "$repository/$username/mrroboto:$platform"')"
+  $expressionA = "$expressionA $("--amend $repository/$username/mrroboto_no-audio:$platform")"
+  $expressionB = "$expressionB $("--amend $repository/$username/mrroboto_no-audio:$platform")"
 }
 
 Invoke-Expression $expression

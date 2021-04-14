@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import argparse
 import os
 import sys
 import platform
@@ -258,35 +259,46 @@ def generate_configs(*, local : bool):
 # MAIN
 #
 
+def parse_args():
+    parser = argparse.ArgumentParser(prog = "MrRoboto Quickstart")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("-l", dest = "local", help = "Local install", action = "store_true", default = None)
+    group.add_argument("-k", dest = "local", help = "Kubernetes install", action = "store_false", default = None)
+
+    parser.add_argument("-d", dest = "dev", help = "I am a developer", action = "store_true")
+    parser.add_argument("-r", dest = "install_reqs", help = "Install requirements", action = "store_true")
+    parser.add_argument("-c", dest = "gen_configs", help = "Generate example configurations", action = "store_true")
+
+    return parser.parse_args()
+
+def fill_remaining_args(args):
+    if args.local is None:
+        args.local = input_yn("Input: \n (Y)es if you are using the bot locally\n (N)o if you are using kubernetes\n")
+
+    # Fill remaining if no args hav ebeen provided
+    if len(sys.argv) == 1:
+        if input_yn("Is this your first time running quickstart on this machine?"):
+            args.install_reqs = args.gen_configs = True
+        else:
+            args.install_reqs = input_yn("Do you want to install all the requirements?")
+            args.gen_configs = input_yn("Do you want to generate example config files?")
+
+        if args.install_reqs:
+            args.dev = input_yn("Are you planning on commiting to the MrRoboto repository?")
+
+
 def main():
     print("Welcome to discord-bot quickstart\n")
+    args = parse_args()
+    fill_remaining_args(args)
 
-    # Ask for type
-    # Ask if user wants to install requirements
-    # Ask if user wants to generate example configs
-    # Ask if user is a developer
-    use_local = input_yn("Input: \n (Y)es if you are using the bot locally\n (N)o if you are using kubernetes\n")
-    print('')
-
-    if input_yn("Is this your first time running quickstart on this machine?"):
-        install_reqs = gen_configs = True
-    else:
-        install_reqs = input_yn("Do you want to install all the requirements?")
-        gen_configs = input_yn("Do you want to generate example config files?")
-
-    if install_reqs:
-        if input_yn("Are you planning on commiting to the MrRoboto repository?"):
-            is_dev = True
-        else:
-            is_dev = False
-
-        install_requirements(local = use_local, dev = is_dev)
-    if gen_configs:
-        generate_configs(local = use_local)
+    if args.install_reqs:
+        install_requirements(local = args.local, dev = args.dev)
+    if args.gen_configs:
+        generate_configs(local = args.local)
 
     print("\nQuickstart finished running")
 
 if __name__ == '__main__':
     main()
-else:
-    print("Error, can only run quickstart as main")

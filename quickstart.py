@@ -54,46 +54,41 @@ EXAMPLE_BOT_SECRETS = {
     "apiUserAgentIdentification": "roboto/v0.1 <contact email>"
 }
 
-KUBE_BOT_CONFIG = {
-    'apiVersion': 'v1',
-    'kind': 'ConfigMap',
-    'metadata': {
-        'name': 'robotobot-config',
-        'namespace': 'roboto'
-    },
-    'data': {
-        'bot_config.json' : json.dumps(EXAMPLE_BOT_CONFIG)
-    }
-}
+KUBE_BOT_CONFIG = f"""
+apiVersion: 'v1',
+kind: 'ConfigMap',
+metadata:
+    name: 'robotobot-config',
+    namespace: 'roboto'
+data:
+    bot_config.json: '''
+{json.dumps(EXAMPLE_BOT_CONFIG, indent=4)}
+'''
+"""
 
-KUBE_BOT_SECRETS = {
-    'apiVersion': 'v1',
-    'kind': 'Secret',
-    'type': 'Opaque',
-    'metadata': {
-        'name': 'robotobot-secrets',
-        'namespace': 'roboto'
-    },
-    'data': {
-        'bot_secrets.json': json.dumps(EXAMPLE_BOT_SECRETS)
-    }
-}
-
-KUBE_DB_SECRETS = {
-    'apiVersion': 'v1',
-    'kind': 'Secret',
-    'type': 'Opaque',
-    'metadata': {
-        'name': 'robotodb-secrets',
-        'namespace': 'roboto',
-        'labels': {
-            'app': 'roboto-postgres'
-        }
-    },
-    'data': {
-        'POSTGRES_PASSWORD': 'password'
-    }
-}
+KUBE_BOT_SECRETS = f"""
+apiVersion: 'v1'
+kind: 'Secret'
+type: 'Opaque'
+metadata:
+    name: 'robotobot-secrets'
+    namespace: 'roboto'
+data:
+    bot_secrets.json: '''
+{json.dumps(EXAMPLE_BOT_SECRETS, indent=4)}
+'''
+"""
+KUBE_DB_SECRETS = """
+apiVersion: 'v1'
+kind: 'Secret'
+type: 'Opaque'
+metadata:
+    name: 'robotodb-secrets'
+    namespace: 'roboto'
+        app: 'roboto-postgres'
+    data:
+        POSTGRES_PASSWORD: 'password'
+"""
 
 #
 # EXCEPTIONS
@@ -226,10 +221,15 @@ def install_requirements(*, local : bool, dev : bool):
 
     print("[FINISHED INSTALLING REQUIREMENTS]")
 
-def create_file_at(file_obj, path : str, filename : str):
+def create_file_at(file_obj, path : str, filename : str, type="json"):
     print("...Attempting to generate {} file in {}.".format(filename, path))
     file = open(os.path.join(path, filename), 'w')
-    json.dump(file_obj, file, indent=4)
+    if type == "json":
+        json.dump(file_obj, file, indent=4)
+    elif type == "yaml":
+        file.write(file_obj)
+    else:
+        print("https://steamuserimages-a.akamaihd.net/ugc/318999824702742815/54C873B9C37CAACD8A21889B86A838307A646435/")
     file.close()
     print("...Success, file generated")
 
@@ -245,9 +245,9 @@ def generate_configs(*, local : bool):
             create_file_at(EXAMPLE_BOT_CONFIG, path, "bot_config.json")
             create_file_at(EXAMPLE_BOT_SECRETS, path, "bot_secrets.json")
         else:
-            create_file_at(KUBE_BOT_CONFIG, path, "bot_config.json")
-            create_file_at(KUBE_BOT_SECRETS, path, "bot_secrets.json")
-            create_file_at(KUBE_DB_SECRETS, path, "db_secrets.json")
+            create_file_at(KUBE_BOT_CONFIG, path, "bot_config.yaml", type="yaml")
+            create_file_at(KUBE_BOT_SECRETS, path, "bot_secrets.yaml", type="yaml")
+            create_file_at(KUBE_DB_SECRETS, path, "db_secrets.yaml", type="yaml")
 
     except IOError as e:
         print("...Error, failed to generate configs")

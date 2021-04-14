@@ -106,8 +106,8 @@ class Other(commands.Cog):
 
         #Get coordinates
         hereApiUrl = f"https://discover.search.hereapi.com/v1/discover?at={lat},{lon}&limit=1&q={urllib.parse.quote_plus(search)}&apiKey={hereApiToken}"
-        response = await self.client.loop.run_in_executor(None, urllib.request.urlopen(hereApiUrl))
-        jsonResponse = json.load(response)
+        response = await self.client.loop.run_in_executor(None, urllib.request.urlopen(hereApiUrl)) #Add as helper function
+        jsonResponse = await self.client.loop.run_in_executor(None, json.load(response)) #Add as helper function
         resultCoordinates = jsonResponse["items"][0]["position"]
         resultLocation = jsonResponse["items"][0]["address"]
 
@@ -115,8 +115,8 @@ class Other(commands.Cog):
         searchUrl = f"https://api.met.no/weatherapi/locationforecast/2.0/compact.json?lat={round(resultCoordinates['lat'],3)}&lon={round(resultCoordinates['lng'],3)}"
         header = {"User-Agent": config['apiUserAgentIdentification']} #Format "application/version contactaddress"
         request = urllib.request.Request(searchUrl, headers=header)
-        response = await self.client.loop.run_in_executor(None, urllib.request.urlopen(request))
-        jsonResponse = json.load(response)
+        response = await self.client.loop.run_in_executor(None, urllib.request.urlopen(request)) #Add as helper function
+        jsonResponse = await self.client.loop.run_in_executor(None, json.load(response)) #Add as helper function
         metaData = jsonResponse["properties"]["meta"]
         timeseries = jsonResponse["properties"]["timeseries"]
 

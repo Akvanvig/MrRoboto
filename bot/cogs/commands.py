@@ -106,7 +106,7 @@ class Other(commands.Cog):
 
         #Get coordinates
         hereApiUrl = f"https://discover.search.hereapi.com/v1/discover?at={lat},{lon}&limit=1&q={urllib.parse.quote_plus(search)}&apiKey={hereApiToken}"
-        response = urllib.request.urlopen(hereApiUrl)
+        response = await self.client.loop.run_in_executor(None, urllib.request.urlopen(hereApiUrl))
         jsonResponse = json.load(response)
         resultCoordinates = jsonResponse["items"][0]["position"]
         resultLocation = jsonResponse["items"][0]["address"]
@@ -115,7 +115,7 @@ class Other(commands.Cog):
         searchUrl = f"https://api.met.no/weatherapi/locationforecast/2.0/compact.json?lat={round(resultCoordinates['lat'],3)}&lon={round(resultCoordinates['lng'],3)}"
         header = {"User-Agent": config['apiUserAgentIdentification']} #Format "application/version contactaddress"
         request = urllib.request.Request(searchUrl, headers=header)
-        response = urllib.request.urlopen(request)
+        response = await self.client.loop.run_in_executor(None, urllib.request.urlopen(request))
         jsonResponse = json.load(response)
         metaData = jsonResponse["properties"]["meta"]
         timeseries = jsonResponse["properties"]["timeseries"]
@@ -155,7 +155,7 @@ class Other(commands.Cog):
         searchUrl = f"https://rule34.xxx/index.php?page=dapi&s=post&q=index&tags={urllib.parse.quote_plus(search)}"
 
         #Feching data
-        webpage = urllib.request.urlopen(searchUrl)
+        response = await self.client.loop.run_in_executor(None, urllib.request.urlopen(searchUrl))
 
         #Fetching response from xml
         tree = ET.fromstring(webpage.read())

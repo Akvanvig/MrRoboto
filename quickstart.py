@@ -114,9 +114,13 @@ class ReqError(Exception):
 def input_yn(string : str) -> bool:
     while True:
         answer = input(string + " [y/n]:    ").lower()
-        if answer in ('y', 'yes'): return True
-        elif answer in ('n', 'no'): return False
-        else: print("Error, enter a valid input")
+
+        if answer in ('y', 'yes'):
+            return True
+        elif answer in ('n', 'no'):
+            return False
+        else:
+            print("Error, enter a valid input")
 
 def install_requirements_pip_dev():
     try:
@@ -164,6 +168,7 @@ def install_requirements_windows():
         ) as response:
             url_file = BytesIO(response.read())
         print("...Success, downloaded ffmpeg")
+
     except (URLError, IncompleteRead):
         raise ReqError("...Error, failed to download ffmpeg")
 
@@ -222,16 +227,19 @@ def install_requirements(*, local : bool, dev : bool):
 
     print("[FINISHED INSTALLING REQUIREMENTS]")
 
-def create_file_at(file_obj, path : str, filename : str, file_ext="json"):
-    print("...Attempting to generate {} file in {}.".format(filename, path))
-    file = open(os.path.join(path, filename), 'w')
-    if file_ext == "json":
-        json.dump(file_obj, file, indent=4)
-    elif file_ext == "yaml":
-        file.write(file_obj)
-    else:
-        file.write("https://steamuserimages-a.akamaihd.net/ugc/318999824702742815/54C873B9C37CAACD8A21889B86A838307A646435/")
-    file.close()
+def create_file_at(file_obj, path : str, file_name : str):
+    print(f"...Attempting to generate {file_name} file in {path}.")
+
+    with open(os.path.join(path, file_name), 'w') as file:
+        file_ext = os.path.splitext(file_name)[1].lower()
+
+        if file_ext == ".json":
+            json.dump(file_obj, file, indent=4)
+        elif file_ext == ".yaml" or file_ext == ".yml":
+            file.write(file_obj)
+        else:
+            file.write("https://steamuserimages-a.akamaihd.net/ugc/318999824702742815/54C873B9C37CAACD8A21889B86A838307A646435/")
+
     print("...Success, file generated")
 
 def generate_configs(*, local : bool):
@@ -240,15 +248,16 @@ def generate_configs(*, local : bool):
     try:
         path = os.path.join(FILE_DIR, "config/")
 
-        if not os.path.exists(path): os.makedirs(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
 
         if local:
             create_file_at(EXAMPLE_BOT_CONFIG, path, "bot_config.json")
             create_file_at(EXAMPLE_BOT_SECRETS, path, "bot_secrets.json")
         else:
-            create_file_at(KUBE_BOT_CONFIG, path, "bot_config.yaml", file_ext="yaml")
-            create_file_at(KUBE_BOT_SECRETS, path, "bot_secrets.yaml", file_ext="yaml")
-            create_file_at(KUBE_DB_SECRETS, path, "db_secrets.yaml", file_ext="yaml")
+            create_file_at(KUBE_BOT_CONFIG, path, "bot_config.yaml")
+            create_file_at(KUBE_BOT_SECRETS, path, "bot_secrets.yaml")
+            create_file_at(KUBE_DB_SECRETS, path, "db_secrets.yaml")
 
     except IOError as e:
         print("...Error, failed to generate configs")
@@ -272,7 +281,7 @@ def parse_args():
 
     return parser.parse_args()
 
-def fill_remaining_args(args):
+def check_args(args):
     if args.local is None:
         args.local = input_yn("Input: \n (Y)es if you are using the bot locally\n (N)o if you are using kubernetes\n")
 
@@ -291,7 +300,7 @@ def fill_remaining_args(args):
 def main():
     print("Welcome to discord-bot quickstart\n")
     args = parse_args()
-    fill_remaining_args(args)
+    check_args(args)
 
     if args.install_reqs:
         install_requirements(local = args.local, dev = args.dev)

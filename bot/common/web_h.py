@@ -1,5 +1,5 @@
 from urllib.request import urlopen
-from functools import Partial
+from functools import partial
 
 #
 # PRIVATE INTERFACE

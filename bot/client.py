@@ -80,7 +80,7 @@ async def start(client: MrRoboto, conf):
     await client.start(conf['discordToken'], bot=True, reconnect=True)
 
 async def stop(client: MrRoboto):
-    await client.logout()
+    await client.close()
     await client.db.stop()
 
 def main():

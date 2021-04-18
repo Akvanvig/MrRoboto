@@ -48,7 +48,8 @@ class MrRoboto(commands.AutoShardedBot):
     # TODO(Fredrico/Anders): Try to keep errors local on a per command basis
     async def on_command_error(self, ctx, error):
         # Return if handled by local error handler
-        if hasattr(ctx.command, "on_error"): return
+        if hasattr(ctx.command, "on_error"):
+            return
 
         if isinstance(error, commands.CommandInvokeError):
             error = error.original
@@ -82,10 +83,6 @@ async def stop(client : MrRoboto):
     await client.db.stop()
 
 def main():
-    # Win32 compatibility for aiopg
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
     loop = asyncio.get_event_loop()
     conf = config_h.get()
 
@@ -106,4 +103,5 @@ def main():
     finally:
         loop.close()
 
-main()
+if __name__ == '__main__':
+    main()

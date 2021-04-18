@@ -39,6 +39,11 @@ class Owners(commands.Cog):
                 dm = await user.create_dm()
 
                 await dm.send(update_str)
+
+                if not update_content[0]:
+                    await dm.send("No outdated packages")
+                    continue
+
                 for part in update_content:
                     await dm.send(f"```{part}```")
 

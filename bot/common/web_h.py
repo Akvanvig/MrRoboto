@@ -1,5 +1,5 @@
 from urllib.request import urlopen
-from functools import partial
+from functools import Partial
 
 #
 # PRIVATE INTERFACE
@@ -14,4 +14,4 @@ def _blocking_network_io(request):
 #
 
 def read_website_content(loop, request):
-    return loop.run_in_executor(None, Partial(_blocking_network_io, request))
+    return loop.run_in_executor(None, partial(_blocking_network_io, request))

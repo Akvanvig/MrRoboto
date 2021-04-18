@@ -24,7 +24,7 @@ class Owners(commands.Cog):
             return subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode(sys.stdout.encoding).strip()
 
         try:
-            output = self.client.loop.run_in_executor(None, blocking_process)
+            output = await self.client.loop.run_in_executor(None, blocking_process)
 
             update_str = f"--- {datetime_ext.now()} ---\nUPDATE CHECK"
             update_content = message_split(output)

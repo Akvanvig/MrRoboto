@@ -19,6 +19,7 @@ Extensions = [
     'cogs.animations',
     'cogs.audio',
     'cogs.commands',
+    'cogs.nsfw',
     'cogs.owners'
 ]
 
@@ -74,11 +75,11 @@ class MrRoboto(commands.AutoShardedBot):
 # MAIN
 #
 
-async def start(client : MrRoboto, conf):
+async def start(client: MrRoboto, conf):
     await client.db.start(conf['postgresql'])
     await client.start(conf['discordToken'], bot=True, reconnect=True)
 
-async def stop(client : MrRoboto):
+async def stop(client: MrRoboto):
     await client.logout()
     await client.db.stop()
 
@@ -87,10 +88,10 @@ def main():
     conf = config_h.get()
 
     client = MrRoboto(
-        loop = loop,
-        command_prefix = conf['commandPrefix'],
-        case_insensitive = True,
-        owner_ids = conf['ownerIds']
+        loop=loop,
+        command_prefix=conf['commandPrefix'],
+        case_insensitive=True,
+        owner_ids=conf['ownerIds']
     )
 
     for extension in Extensions:

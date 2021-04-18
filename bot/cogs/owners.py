@@ -1,4 +1,3 @@
-
 import subprocess
 import sys
 
@@ -6,7 +5,6 @@ from discord.ext import commands, tasks
 from common import config_h
 from common.time_h import datetime_ext
 from common.util_h import message_split
-
 
 #
 # CLASSES
@@ -23,15 +21,12 @@ class Owners(commands.Cog):
 
         def blocking_process():
             cmd = [sys.executable, "-m", "pip", "list", "--outdated"]
-            return subprocess.check_output(cmd, stderr = subprocess.STDOUT).decode(sys.stdout.encoding).strip()
-
-        future = self.client.loop.run_in_executor(None, blocking_process)
-        await future
+            return subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode(sys.stdout.encoding).strip()
 
         try:
-            output = future.result()
-            update_str = f"--- {datetime_ext.now()} ---\nUPDATE CHECK"
+            output = self.client.loop.run_in_executor(None, blocking_process)
 
+            update_str = f"--- {datetime_ext.now()} ---\nUPDATE CHECK"
             update_content = message_split(output)
 
             for owner_id in self.client.owner_ids:
@@ -57,18 +52,16 @@ class Owners(commands.Cog):
         except Exception:
             print("Fatal error, Failed to check for outdated components...")
 
-
     @outdated_reminder.before_loop
     async def before_reminder(self):
         await self.client.wait_until_ready()
-
 
     #
     # COMMANDS
     #
 
     async def cog_check(self, ctx):
-       return ctx.author.id in self.client.owner_ids
+        return ctx.author.id in self.client.owner_ids
 
     @commands.command(hidden=True)
     async def load(self, ctx, *, module):
@@ -98,13 +91,13 @@ class Owners(commands.Cog):
             await ctx.send("\N{OK HAND SIGN}")
 
     @commands.command(
-        name = 'refreshconf',
-        hidden = True)
+        name='refreshconf',
+        hidden=True)
     async def refresh_conf(self, ctx):
-        conf = config_h.get(from_disk = True)
+        conf = config_h.get(from_disk=True)
 
         self.client.command_prefix = conf['commandPrefix']
-        self.client.owner_ids= conf['ownerIds']
+        self.client.owner_ids = conf['ownerIds']
 
         await ctx.send("\N{OK HAND SIGN}")
 

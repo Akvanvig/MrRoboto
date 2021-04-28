@@ -1,11 +1,11 @@
-from .json_h import get_json
-from os.path import dirname, abspath, join
+import os.path as path
+from common import json_h
 
 #
-# GLOBAL
+# CONST
 #
 
-CONFIG_PATH = abspath(join(__file__ , "../../../config"))
+CONFIG_DIR = path.join(path.dirname(__file__), "../../config")
 
 #
 # PRIVATE
@@ -13,14 +13,17 @@ CONFIG_PATH = abspath(join(__file__ , "../../../config"))
 
 def _read_from_disk():
     try:
+        config_file = path.join(CONFIG_DIR, "bot_config.json")
+        secrets_file = path.join(CONFIG_DIR, "bot_secrets.json")
+
         # Read
-        bot_config = get_json(join(CONFIG_PATH, "bot_config.json"))
-        bot_secrets = get_json(join(CONFIG_PATH, "bot_secrets.json"))
+        bot_config = json_h.get_json(config_file)
+        bot_secrets = json_h.get_json(secrets_file)
 
         # Merge
         return {**bot_config, **bot_secrets}
     except IOError as e:
-        if e.errno == 2: 
+        if e.errno == 2:
             print("Config files are missing")
         quit()
 
@@ -35,5 +38,5 @@ def get(*, from_disk = False):
 
     if from_disk:
         _config_cache = _read_from_disk()
-        
-    return _config_cache 
+
+    return _config_cache

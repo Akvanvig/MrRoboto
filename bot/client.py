@@ -7,30 +7,56 @@ Read: https://discordpy.readthedocs.io/en/latest/api.html
 __author__ = "Anders & Fredrico"
 
 import os
-import sys
 import asyncio
+import os.path as path
 
 from discord.ext import commands
-from common import config_h
-from common.db_h import PostgresDB
-
-Extensions = [
-    'cogs.admin',
-    'cogs.animations',
-    'cogs.audio',
-    'cogs.commands',
-    'cogs.nsfw',
-    'cogs.owners'
-]
+from common import config_h, db_h
 
 #
 # CLASSES
 #
 
 class MrRoboto(commands.AutoShardedBot):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.db = PostgresDB()
+    def __init__(self):
+        config = config_h.get()
+
+        super().__init__(
+            command_prefix=config['commandPrefix'],
+            case_insensitive=True,
+            owner_ids=config['ownerIds']
+        )
+
+        self.db = db_h.PostgresDB()
+        self._load_extensions()
+
+    def _load_extensions(self):
+        cogs_dir = path.join(path.dirname(__file__), "cogs")
+        extensions = []
+
+        for f in os.listdir(cogs_dir):
+            name, ext = path.splitext(f)
+
+            if ext != ".py":
+                continue
+
+            extensions.append(f"cogs.{name}")
+
+        for extension in extensions:
+            try:
+                self.load_extension(extension)
+            except (commands.NoEntryPointError, commands.ExtensionFailed) as e:
+                print(e)
+
+    async def start(self):
+        config = config_h.get()
+
+        await self.db.start(config['postgresql'])
+        await super().start(config['discordToken'], reconnect=True)
+
+    async def close(self):
+        await super().close()
+        await self.db.stop()
 
     async def on_ready(self):
         print("Logged in as")
@@ -75,34 +101,9 @@ class MrRoboto(commands.AutoShardedBot):
 # MAIN
 #
 
-async def start(client: MrRoboto, conf):
-    await client.db.start(conf['postgresql'])
-    await client.start(conf['discordToken'], bot=True, reconnect=True)
-
-async def stop(client: MrRoboto):
-    await client.close()
-    await client.db.stop()
-
 def main():
-    loop = asyncio.get_event_loop()
-    conf = config_h.get()
-
-    client = MrRoboto(
-        loop=loop,
-        command_prefix=conf['commandPrefix'],
-        case_insensitive=True,
-        owner_ids=conf['ownerIds']
-    )
-
-    for extension in Extensions:
-        client.load_extension(extension)
-
-    try:
-        loop.run_until_complete(start(client, conf))
-    except KeyboardInterrupt:
-        loop.run_until_complete(stop(client))
-    finally:
-        loop.close()
+    client = MrRoboto()
+    client.run()
 
 if __name__ == '__main__':
     main()

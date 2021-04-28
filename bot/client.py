@@ -75,12 +75,12 @@ class MrRoboto(commands.AutoShardedBot):
     async def start(self):
         config = config_h.get()
 
-        #await self.db.start(config['postgresql'])
+        await self.db.start(config['postgresql'])
         await super().start(config['discordToken'], reconnect=True)
 
     async def close(self):
         await super().close()
-        #await self.db.stop()
+        await self.db.stop()
 
     async def on_ready(self):
         print("Logged in as")

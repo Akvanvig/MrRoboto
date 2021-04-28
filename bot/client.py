@@ -48,15 +48,39 @@ class MrRoboto(commands.AutoShardedBot):
             except (commands.NoEntryPointError, commands.ExtensionFailed) as e:
                 print(e)
 
+    # Sneaky override
+    def add_cog(self, cog):
+        if not isinstance(cog, commands.Cog):
+            raise TypeError('cogs must derive from Cog')
+
+        cog_name = cog.__cog_name__
+        existing = self._BotBase__cogs.get(cog_name)
+
+        if existing is not None:
+            if not override:
+                raise discord.ClientException(f'Cog named {cog_name!r} already loaded')
+            self.remove_cog(cog_name)
+
+        try:
+            check = getattr(cog, 'requirement_check')
+        except AttributeError:
+            pass
+        else:
+            if not check():
+                raise discord.ClientException(f'Cog named {cog_name!r} did not fulfill the requirement')
+
+        cog = cog._inject(self)
+        self._BotBase__cogs[cog_name] = cog
+
     async def start(self):
         config = config_h.get()
 
-        await self.db.start(config['postgresql'])
+        #await self.db.start(config['postgresql'])
         await super().start(config['discordToken'], reconnect=True)
 
     async def close(self):
         await super().close()
-        await self.db.stop()
+        #await self.db.stop()
 
     async def on_ready(self):
         print("Logged in as")

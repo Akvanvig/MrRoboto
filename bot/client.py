@@ -34,10 +34,15 @@ class MrRoboto(commands.AutoShardedBot):
         cogs_dir = path.join(path.dirname(__file__), "cogs")
         extensions = []
 
+        try:
+            ignore = config_h.get()['ignoreExtensions']
+        except KeyError:
+            ignore = []
+
         for f in os.listdir(cogs_dir):
             name, ext = path.splitext(f)
 
-            if ext != ".py":
+            if ext != ".py" or name in ignore:
                 continue
 
             extensions.append(f"cogs.{name}")

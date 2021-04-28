@@ -23,6 +23,7 @@ APT_PACKAGES = [
 
 EXAMPLE_BOT_CONFIG = {
     'commandPrefix': '?',
+    'ignoreExtensions': [],
     'ytdlFormatOptions': {
         'format': 'bestaudio/best',
         'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',

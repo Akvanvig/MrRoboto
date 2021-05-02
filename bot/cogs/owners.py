@@ -15,6 +15,9 @@ class Owners(commands.Cog):
         self.client = client
         self.outdated_reminder.start()
 
+    async def cog_check(self, ctx):
+        return ctx.author.id in self.client.owner_ids
+
     @tasks.loop(hours=168.0)
     async def outdated_reminder(self):
         print("Checking for outdated components...")
@@ -59,9 +62,6 @@ class Owners(commands.Cog):
     #
     # COMMANDS
     #
-
-    async def cog_check(self, ctx):
-        return ctx.author.id in self.client.owner_ids
 
     @commands.command(hidden=True)
     async def load(self, ctx, *, module):

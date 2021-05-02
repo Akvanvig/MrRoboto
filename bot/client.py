@@ -10,6 +10,7 @@ import os
 import asyncio
 import os.path as path
 
+from discord import ClientException
 from discord.ext import commands
 from common import config_h, db_h
 
@@ -50,7 +51,7 @@ class MrRoboto(commands.AutoShardedBot):
         for extension in extensions:
             try:
                 self.load_extension(extension)
-            except (commands.NoEntryPointError, commands.ExtensionFailed) as e:
+            except Exception as e:
                 print(e)
 
     # Sneaky override
@@ -63,7 +64,7 @@ class MrRoboto(commands.AutoShardedBot):
 
         if existing is not None:
             if not override:
-                raise discord.ClientException(f'Cog named {cog_name!r} already loaded')
+                raise ClientException(f'Cog named {cog_name!r} already loaded')
             self.remove_cog(cog_name)
 
         try:
@@ -72,7 +73,7 @@ class MrRoboto(commands.AutoShardedBot):
             pass
         else:
             if not check():
-                raise discord.ClientException(f'Cog named {cog_name!r} did not fulfill the requirement')
+                raise ClientException(f'Cog named {cog_name!r} did not fulfill the requirement check')
 
         cog = cog._inject(self)
         self._BotBase__cogs[cog_name] = cog

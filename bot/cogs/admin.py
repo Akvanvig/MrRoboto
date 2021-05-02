@@ -33,6 +33,9 @@ class Admin(commands.Cog):
             keep_existing=True
         )
 
+    async def cog_check(self, ctx):
+            return ctx.channel.permissions_for(ctx.message.author).administrator
+
     @commands.Cog.listener()
     async def on_ready(self):
         await self._mute_restore()
@@ -112,9 +115,6 @@ class Admin(commands.Cog):
     #
     # COMMANDS
     #
-
-    async def cog_check(self, ctx):
-        return ctx.channel.permissions_for(ctx.message.author).administrator
 
     @commands.command()
     async def mute(self, ctx, member: Member, mutetime: timedelta_ext):

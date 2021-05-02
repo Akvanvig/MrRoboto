@@ -53,7 +53,8 @@ EXAMPLE_BOT_SECRETS = {
         'password': 'password'
     },
     "hereApiToken": "<A Rest API Key from developer.here.com>",
-    "apiUserAgentIdentification": "roboto/v0.1 <contact email>"
+    "apiUserAgentIdentification": "roboto/v0.1 <contact email>",
+    "nexusApiToken": "An API token from nexusmods.com"
 }
 
 KUBE_BOT_CONFIG = f"""

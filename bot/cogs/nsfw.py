@@ -13,12 +13,12 @@ class Nsfw(commands.Cog):
 	def __init__(self, client):
 		self.client = client
 
+	async def cog_check(self, ctx):
+		return ctx.channel.is_nsfw()
+
 	#
 	# COMMANDS
 	#
-
-	async def cog_check(self, ctx):
-		return ctx.channel.is_nsfw()
 
 	@commands.command(name="rule34")
 	async def rule_thirtyfour(self, ctx, *, search: str):

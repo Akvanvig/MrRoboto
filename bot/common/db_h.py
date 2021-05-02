@@ -1,6 +1,7 @@
-import asyncio
 import sqlalchemy as sa
+
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.exc import OperationalError
 
 #
 # CLASSES
@@ -14,21 +15,29 @@ class PostgresDB:
     def __getattr__(self, name):
         # Attribute does not exist in PostgresDB,
         # so we check the wrapped engine for a match.
-        if self._wrapped_engine:
-            return self._wrapped_engine.__getattribute__(name)
-        else:
+        if not self._wrapped_engine:
             raise AttributeError(name)
+
+        return self._wrapped_engine.__getattribute__(name)
+
+    def connected(self):
+        return True if self._wrapped_engine else False
 
     async def start(self, config):
         if not self._wrapped_engine:
-            self._wrapped_engine = create_async_engine(
+            engine = create_async_engine(
                 f"postgresql+asyncpg://{config['user']}:{config['password']}@{config['host']}/{config['database']}"
             )
 
-            async with self._wrapped_engine.begin() as conn:
-                await conn.run_sync(self.meta.create_all)
+            try:
+                async with self._wrapped_engine.begin() as conn:
+                    await conn.run_sync(self.meta.create_all)
+            except OperationalError as e:
+                print(e)
+            else:
+                self._wrapped_engine = engine
 
     async def stop(self):
-        if self._wrapped_engine: 
+        if self._wrapped_engine:
             await self._wrapped_engine.dispose()
             self._wrapped_engine = None

@@ -33,6 +33,12 @@ class Admin(commands.Cog):
             keep_existing=True
         )
 
+    def requirement_check(self):
+        if not self.db.connected():
+            return False
+
+        return True
+
     async def cog_check(self, ctx):
             return ctx.channel.permissions_for(ctx.message.author).administrator
 
@@ -149,10 +155,6 @@ class Admin(commands.Cog):
         except KeyError:
             await ctx.send(f'User "{member.nick}" is not muted')
 
-    @commands.command()
-    async def sudo(self, ctx):
-        await ctx.send("You are now running with sudo privileges")
-
     @commands.group(
         name="clear",
         invoke_without_command=True)
@@ -180,6 +182,10 @@ class Admin(commands.Cog):
             await ctx.send(f"Choose a limit between 1 and {HISTORY_LIMIT}")
         else:
             await ctx.channel.purge(limit=lim, before=ctx.message, bulk=True)
+
+    @commands.command()
+    async def sudo(self, ctx):
+        await ctx.send("You are now running with sudo privileges")
 
 
 

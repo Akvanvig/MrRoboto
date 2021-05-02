@@ -29,9 +29,8 @@ class MrRoboto(commands.AutoShardedBot):
         )
 
         self.db = db_h.PostgresDB()
-        self._load_extensions()
 
-    def _load_extensions(self):
+    def __load_extensions(self):
         cogs_dir = path.join(path.dirname(__file__), "cogs")
         extensions = []
 
@@ -82,6 +81,7 @@ class MrRoboto(commands.AutoShardedBot):
         config = config_h.get()
 
         await self.db.start(config['postgresql'])
+        self.__load_extensions()
         await super().start(config['discordToken'], reconnect=True)
 
     async def close(self):

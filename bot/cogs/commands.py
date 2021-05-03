@@ -2,14 +2,13 @@ import asyncio
 import random
 import discord
 import json
+import urllib.request
+import urllib.parse
+import datetime  # This should use datetime_ext
 
 from discord.ext import commands
 from common import config_h
 from common.web_h import read_website_content
-
-import urllib.request
-import urllib.parse
-import datetime  # This should use datetime_ext
 
 #
 # CLASSES

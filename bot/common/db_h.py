@@ -1,7 +1,6 @@
 import sqlalchemy as sa
 
 from sqlalchemy.ext.asyncio import create_async_engine
-from sqlalchemy.exc import OperationalError
 
 #
 # CLASSES
@@ -30,9 +29,9 @@ class PostgresDB:
             )
 
             try:
-                async with self._wrapped_engine.begin() as conn:
+                async with engine.begin() as conn:
                     await conn.run_sync(self.meta.create_all)
-            except OperationalError as e:
+            except Exception as e:
                 print(e)
             else:
                 self._wrapped_engine = engine

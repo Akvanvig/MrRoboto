@@ -15,6 +15,9 @@ class Owners(commands.Cog):
         self.client = client
         self.outdated_reminder.start()
 
+    def cog_unload(self):
+        self.outdated_reminder.cancel()
+
     async def cog_check(self, ctx):
         return ctx.author.id in self.client.owner_ids
 

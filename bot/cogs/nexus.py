@@ -21,7 +21,7 @@ class ModError(commands.CommandError):
     pass
 
 def nexus_mod(argument):
-    if not re.search(r'^[A-Za-z0-9+.\-]+https://', argument):
+    if not re.search(r'^[A-Za-z0-9+.\-]+://', argument):
         argument = f"https://{argument}"
 
     try:

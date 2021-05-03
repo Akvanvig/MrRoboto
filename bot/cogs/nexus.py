@@ -1,4 +1,5 @@
 import sqlalchemy as sa
+import re
 import asyncio
 import json
 import discord
@@ -207,7 +208,7 @@ class Nexus(commands.Cog):
 
     @commands.command(
         name="subscribetomod")
-    async def subscribe_mod(self, ctx, mod : nexus_mod, channel : discord.TextChannel = None):
+    async def subscribe_mod(self, ctx, mod: nexus_mod, channel: discord.TextChannel = None):
         if not mod:
             raise ModError(f"The given mod is not valid")
 
@@ -247,7 +248,7 @@ class Nexus(commands.Cog):
 
     @commands.command(
         name="unsubscribefrommod")
-    async def unsubscribe_mod(self, ctx, mod : nexus_mod, channel : discord.TextChannel=None):
+    async def unsubscribe_mod(self, ctx, mod: nexus_mod, channel: discord.TextChannel=None):
         if not mod:
             raise ModError(f"The given mod is not valid")
 

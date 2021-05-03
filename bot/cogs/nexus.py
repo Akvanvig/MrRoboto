@@ -4,6 +4,7 @@ import json
 import discord
 import urllib.request
 
+from urllib.parse import urlparse
 from discord.ext import commands, tasks
 from common import config_h, web_h, util_h
 
@@ -17,6 +18,26 @@ class ChannelError(commands.CommandError):
 
 class ModError(commands.CommandError):
     pass
+
+def nexus_mod(argument):
+    if not re.search(r'^[A-Za-z0-9+.\-]+https://', argument):
+        argument = f"https://{argument}"
+
+    try:
+        url = urlparse(argument)
+    except:
+        return None
+
+    if not "nexusmods.com" in url.netloc:
+        return None
+
+    url = url._replace(query="", fragment="").path
+    url = url.strip('/').split('/')
+
+    if len(url) != 3:
+        return None
+
+    return url[0], url[2]
 
 #
 # CLASSES
@@ -135,27 +156,33 @@ class Nexus(commands.Cog):
         if not channel:
             raise ChannelError("Channel has been deleted")
 
-        changelog_versions = list(mod_changelog_response.keys())
-        changelog = ""
-
-        if changelog_versions:
-            version = changelog_versions[-1]
-            changelog_l = mod_changelog_response[version]
-
-            if len(changelog_l) > 5:
-                changelog_l = changelog_l[:5]
-
-            changelog_l = '\n'.join(changelog_l)
-            changelog = f"Latest changelog [{version}]:\n{changelog_l}\n..."
-
         message = discord.Embed(
             title=mod_response["name"],
             url=f"{self.nexus_url}{game}/mods/{mod}",
-            description=f"{util_h.remove_html_tags(mod_response['summary'])}\n\n{changelog}"
+            description=util_h.remove_html_tags(mod_response["summary"])
         )
-        message.set_author(name=mod_response["uploaded_by"], url=f"{self.nexus_url}users/{mod_response['user']['member_id']}")
+        message.set_author(
+            name=mod_response["uploaded_by"],
+            url=f"{self.nexus_url}users/{mod_response['user']['member_id']}",
+            icon_url=f"https://forums.nexusmods.com/uploads/profile/photo-thumb-{mod_response['user']['member_id']}.png"
+        )
+
+        if (versions := list(mod_changelog_response.keys())):
+            version = versions[-1]
+            changelog = mod_changelog_response[version]
+
+            if len(changelog) > 10:
+                changelog = changelog[:11]
+                changelog[10] = "..."
+
+            message.add_field(
+                name=f"Latest changelog [{version}]",
+                value='\n-'.join(changelog),
+                inline=False
+            )
+
         message.set_image(url=mod_response["picture_url"])
-        message.set_footer(text=f"The mod was updated within the last hour")
+        message.set_footer(text=f"This mod was updated within the last hour")
 
         await channel.send(embed=message)
 
@@ -174,18 +201,16 @@ class Nexus(commands.Cog):
             where(
                 to_update
             ))
-
     #
     # COMMANDS
     #
 
     @commands.command(
         name="subscribetomod")
-    async def subscribe_mod(self, ctx, channel : discord.TextChannel, game : str, mod : int):
+    async def subscribe_mod(self, ctx, mod : nexus_mod, channel : discord.TextChannel = None):
         if not channel:
-            raise ChannelError("The given channel does not exist")
-
-        if ctx.guild != channel.guild:
+            channel = ctx.channel
+        elif ctx.guild != channel.guild:
             raise ChannelError("The given channel is not in this server")
 
         config = config_h.get()
@@ -194,7 +219,7 @@ class Nexus(commands.Cog):
                 "apiKey": config["nexusApiToken"],
                 "User-Agent": config['apiUserAgentIdentification']
             },
-            url=f"{self.api_url}games/{game}/mods/{mod}.json"
+            url=f"{self.api_url}games/{mod[0]}/mods/{mod[1]}.json"
         )
 
         response = await web_h.read_website_content(self.client.loop, request)
@@ -208,22 +233,21 @@ class Nexus(commands.Cog):
                 try:
                     await conn.execute(self.update_table.insert().values(
                         channel_id=channel.id,
-                        game_domain=game,
-                        mod_id=mod,
+                        game_domain=mod[0],
+                        mod_id=mod[1],
                         updated=response["updated_timestamp"]
                     ))
                 except sa.exc.IntegrityError:
                     raise ModError((f"The given mod has already been subscribed to in {channel.mention}"))
 
-        await ctx.send(f"\"{response['name']}\" Has been added to the update list in {channel.mention}")
+        await ctx.send(f"\"{response['name']}\" has been added to the update list in {channel.mention}")
 
     @commands.command(
         name="unsubscribefrommod")
-    async def unsubscribe_mod(self, ctx, channel : discord.TextChannel, game : str, mod : int):
+    async def unsubscribe_mod(self, ctx, mod : nexus_mod, channel : discord.TextChannel=None):
         if not channel:
-            raise ChannelError("The given channel does not exist")
-
-        if ctx.guild != channel.guild:
+            channel = ctx.channel
+        elif ctx.guild != channel.guild:
             raise ChannelError("The given channel is not in this server")
 
         async with self.lock:
@@ -231,8 +255,8 @@ class Nexus(commands.Cog):
                 result = await conn.execute(self.update_table.delete().where(
                     sa.and_(
                         self.update_table.c.channel_id == channel.id,
-                        self.update_table.c.game_domain == game,
-                        self.update_table.c.mod_id == mod
+                        self.update_table.c.game_domain == mod[0],
+                        self.update_table.c.mod_id == mod[1]
                     )
                 ))
 

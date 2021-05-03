@@ -65,10 +65,10 @@ class Nexus(commands.Cog):
 		async with self.lock:
 			async with self.client.db.begin() as conn:
 				result = await conn.stream(self.update_table.select())
-				prune, updated = self._check_for_updates(header, result)
+				prune, updated = await self._check_for_updates(header, result)
 
-				self._prune(conn, prune)
-				self._update(conn, updated)
+				await self._prune(conn, prune)
+				await self._update(conn, updated)
 
 	@post_updates.before_loop
 	async def before_post_updates(self):

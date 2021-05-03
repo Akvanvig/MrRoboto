@@ -24,7 +24,7 @@ class Nexus(commands.Cog):
         self.client = client
         self.lock = asyncio.Lock()
         self.nexus_url = "https://www.nexusmods.com/"
-        self.api_url = "https://www.api.nexusmods.com/v1/"
+        self.api_url = "https://api.nexusmods.com/v1/"
 
         self.update_table = sa.Table(
             'modupdates', client.db.meta,
@@ -182,11 +182,10 @@ class Nexus(commands.Cog):
         )
 
         response = await web_h.read_website_content(self.client.loop, request)
-
-        if response.status_code == 404:
-            raise ModError()
-
         response = json.loads(response)
+
+        if response.get("code", default=200) == 404:
+            raise ModError(response["message"])
 
         async with self.lock:
             async with self.client.db.begin() as conn:

@@ -1,4 +1,4 @@
-
+import xml.etree.ElementTree as ET
 
 #
 # CONSTANTS
@@ -23,3 +23,7 @@ def message_split(message, length=MSG_LIMIT, split="\n"):
         resultlist.append(part)
     resultlist.append(message)
     return resultlist
+
+# Remove html tags
+def remove_html_tags(text):
+    return ''.join(ET.fromstring(text).itertext())

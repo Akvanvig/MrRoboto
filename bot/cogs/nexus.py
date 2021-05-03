@@ -5,7 +5,7 @@ import discord
 import urllib.request
 
 from discord.ext import commands, tasks
-from common import config_h, web_h
+from common import config_h, web_h, util_h
 
 
 class HttpError(Exception):
@@ -95,16 +95,16 @@ class Nexus(commands.Cog):
                     continue
             except ChannelError as e:
                 table_key = sa.and_(
-                    "channel_id" == row["channel_id"],
-                    "game_domain" == row["game_domain"],
-                    "mod_id" == row["mod_id"]
+                    self.update_table.c.channel_id == row["channel_id"],
+                    self.update_table.c.game_domain == row["game_domain"],
+                    self.update_table.c.mod_id == row["mod_id"]
                 )
                 prune.append(table_key)
             else:
                 table_key = sa.and_(
-                    "channel_id" == row["channel_id"],
-                    "game_domain" == row["game_domain"],
-                    "mod_id" == row["mod_id"]
+                    self.update_table.c.channel_id == row["channel_id"],
+                    self.update_table.c.game_domain == row["game_domain"],
+                    self.update_table.c.mod_id == row["mod_id"]
                 )
                 updated.append((timestamp, table_key))
 
@@ -135,14 +135,17 @@ class Nexus(commands.Cog):
         if not channel:
             raise ChannelError("Channel has been deleted")
 
+        version = mod_changelog_response.keys()[-1]
+        changelog = '\n'.join(mod_changelog_response[version])
+
         message = discord.Embed(
             title=f"Update: {mod_response['name']}",
             url=f"{self.nexus_url}{game}/mods/{mod}",
-            description=mod_response["summary"]
+            description=f"{util_h.remove_html_tags(mod_response['summary'])}\n\nChangelog [{version}]: {changelog}"
         )
         message.set_author(name=mod_response["uploaded_by"], url=f"{self.nexus_url}users/{mod_response['user']['member_id']}")
         message.set_image(url=mod_response["picture_url"])
-        message.set_footer(text=f"Was updated at {mod_response['updated_time']}")
+        message.set_footer(text=f"Was updated in the last hour")
 
         await channel.send(embed=message)
 
@@ -200,9 +203,9 @@ class Nexus(commands.Cog):
                         updated=response["updated_timestamp"]
                     ))
                 except sa.exc.IntegrityError:
-                    raise ModError((f"The given mod has already been subscribed to in #{channel.name}"))
+                    raise ModError((f"The given mod has already been subscribed to in {channel.mention}"))
 
-        await ctx.send(f"\"{response['name']}\" Has been added to the update list in #{channel.name}")
+        await ctx.send(f"\"{response['name']}\" Has been added to the update list in {channel.mention}")
 
     @commands.command(
         name="unsubscribefrommod")
@@ -217,16 +220,16 @@ class Nexus(commands.Cog):
             async with self.client.db.begin() as conn:
                 result = await conn.execute(self.update_table.delete().where(
                     sa.and_(
-                        "channel_id" == channel.id,
-                        "game_domain" == game,
-                        "mod_id" == mod
+                        self.update_table.c.channel_id == channel.id,
+                        self.update_table.c.game_domain == game,
+                        self.update_table.c.mod_id == mod
                     )
                 ))
 
                 if result.rowcount == 0:
-                    raise ModError(f"There are no subscribed mods in #{channel.name} with the given parameters")
+                    raise ModError(f"There are no subscribed mods in {channel.mention} with the given parameters")
 
-        await ctx.send(f"Mod has been removed from the update list in #{channel.name}")
+        await ctx.send(f"Mod has been removed from the update list in {channel.mention}")
 
     #
     # ERRORS

@@ -208,6 +208,9 @@ class Nexus(commands.Cog):
     @commands.command(
         name="subscribetomod")
     async def subscribe_mod(self, ctx, mod : nexus_mod, channel : discord.TextChannel = None):
+        if not mod:
+            raise ModError(f"The given mod is not valid")
+
         if not channel:
             channel = ctx.channel
         elif ctx.guild != channel.guild:
@@ -245,6 +248,9 @@ class Nexus(commands.Cog):
     @commands.command(
         name="unsubscribefrommod")
     async def unsubscribe_mod(self, ctx, mod : nexus_mod, channel : discord.TextChannel=None):
+        if not mod:
+            raise ModError(f"The given mod is not valid")
+
         if not channel:
             channel = ctx.channel
         elif ctx.guild != channel.guild:

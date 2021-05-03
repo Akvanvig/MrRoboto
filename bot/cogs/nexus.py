@@ -7,13 +7,16 @@ import urllib.request
 from discord.ext import commands, tasks
 from common import config_h, web_h
 
-class ChannelError(Exception):
+
+class HttpError(Exception):
     def __init__(self, msg = ""):
         super().__init__(msg)
 
-class ModError(Exception):
-    def __init__(self, msg = ""):
-        super().__init__(msg)
+class ChannelError(commands.CommandError):
+    pass
+
+class ModError(commands.CommandError):
+    pass
 
 #
 # CLASSES
@@ -107,7 +110,7 @@ class Nexus(commands.Cog):
 
         return prune, updated
 
-    async def _post_if_updated(self, api_header, channel_id, game, mod, old_date):
+    async def _post_if_updated(self, header, channel_id, game, mod, old_date):
         request = urllib.request.Request(
             headers=header,
             url=f"{self.api_url}games/{game}/mods/{mod}.json"
@@ -130,7 +133,7 @@ class Nexus(commands.Cog):
         channel = await self.client.fetch_channel(channel_id)
 
         if not channel:
-            raise ChannelError()
+            raise ChannelError("Channel has been deleted")
 
         message = discord.Embed(
             title=f"Update: {mod_response['name']}",
@@ -167,10 +170,10 @@ class Nexus(commands.Cog):
         name="subscribetomod")
     async def subscribe_mod(self, ctx, channel : discord.TextChannel, game : str, mod : int):
         if not channel:
-            raise ChannelError()
+            raise ChannelError("The given channel does not exist")
 
         if ctx.guild != channel.guild:
-            raise ChannelError()
+            raise ChannelError("The given channel is not in this server")
 
         config = config_h.get()
         request = urllib.request.Request(
@@ -189,12 +192,15 @@ class Nexus(commands.Cog):
 
         async with self.lock:
             async with self.client.db.begin() as conn:
-                await conn.execute(self.update_table.insert().values(
-                    channel_id=channel.id,
-                    game_domain=game,
-                    mod_id=mod,
-                    updated=response["updated_timestamp"]
-                ))
+                try:
+                    await conn.execute(self.update_table.insert().values(
+                        channel_id=channel.id,
+                        game_domain=game,
+                        mod_id=mod,
+                        updated=response["updated_timestamp"]
+                    ))
+                except sa.exc.IntegrityError:
+                    raise ModError((f"The given mod has already been subscribed to in #{channel.name}"))
 
         await ctx.send(f"\"{response['name']}\" Has been added to the update list in #{channel.name}")
 
@@ -202,10 +208,10 @@ class Nexus(commands.Cog):
         name="unsubscribefrommod")
     async def unsubscribe_mod(self, ctx, channel : discord.TextChannel, game : str, mod : int):
         if not channel:
-            raise ChannelError()
+            raise ChannelError("The given channel does not exist")
 
         if ctx.guild != channel.guild:
-            raise ChannelError()
+            raise ChannelError("The given channel is not in this server")
 
         async with self.lock:
             async with self.client.db.begin() as conn:
@@ -218,7 +224,7 @@ class Nexus(commands.Cog):
                 ))
 
                 if result.rowcount == 0:
-                    raise Exception()
+                    raise ModError(f"There are no subscribed mods in #{channel.name} with the given parameters")
 
         await ctx.send(f"Mod has been removed from the update list in #{channel.name}")
 
@@ -229,7 +235,10 @@ class Nexus(commands.Cog):
     @subscribe_mod.error
     @unsubscribe_mod.error
     async def subscription_error(self, ctx, error):
-        print(error)
+        if isinstance(error, commands.CommandError):
+            await ctx.send(error)
+        else:
+            print(error)
 
 #
 # SETUP

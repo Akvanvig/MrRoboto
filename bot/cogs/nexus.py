@@ -113,7 +113,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{game}/mods/{mod}.json"
         )
 
-        mod_response = await read_website_content(self.client.loop, request)
+        mod_response = await web_h.read_website_content(self.client.loop, request)
         mod_response = json.loads(mod_response)
         new_date = mod_response["updated_timestamp"]
 
@@ -125,7 +125,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{game}/mods/{mod}/changelogs.json"
         )
 
-        mod_changelog_response = await read_website_content(self.client.loop, request)
+        mod_changelog_response = await web_h.read_website_content(self.client.loop, request)
         mod_changelog_response = json.loads(mod_changelog_response)
         channel = await self.client.fetch_channel(channel_id)
 
@@ -181,7 +181,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{game}/mods/{mod}/changelogs.json"
         )
 
-        response = await read_website_content(self.client.loop, request)
+        response = await web_h.read_website_content(self.client.loop, request)
 
         if response.status_code == 404:
             raise ModError()
@@ -227,7 +227,7 @@ class Nexus(commands.Cog):
     @subscribe_mod.error
     @unsubscribe_mod.error
     async def subscription_error(self, ctx, error):
-        pass
+        print(error)
 
 #
 # SETUP

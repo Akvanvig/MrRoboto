@@ -38,7 +38,7 @@ def nexus_mod(argument):
     if len(url) != 3:
         return None
 
-    return url[0], url[2]
+    return url[0], int(url[2])
 
 #
 # CLASSES

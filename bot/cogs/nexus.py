@@ -31,7 +31,7 @@ class Nexus(commands.Cog):
             sa.Column('channel_id', sa.BigInteger, primary_key=True),
             sa.Column('game_domain', sa.String, primary_key=True),
             sa.Column('mod_id', sa.BigInteger, primary_key=True),
-            sa.Column('updated', sa.String, nullable=False),
+            sa.Column('updated', sa.BigInteger, nullable=False),
             keep_existing=True
         )
 
@@ -178,7 +178,7 @@ class Nexus(commands.Cog):
                 "apiKey": config["nexusApiToken"],
                 "User-Agent": config['apiUserAgentIdentification']
             },
-            url=f"{self.api_url}games/{game}/mods/{mod}/changelogs.json"
+            url=f"{self.api_url}games/{game}/mods/{mod}.json"
         )
 
         response = await web_h.read_website_content(self.client.loop, request)

@@ -30,7 +30,7 @@ class PostgresDB:
     def exists(self):
         return self.exists
 
-    async def start(self, config):
+    async def start(self):
         if self.exists and not self._wrapped_engine:
             self._wrapped_engine = create_async_engine(self.db_uri)
 

@@ -19,9 +19,7 @@ from common import config_h, db_h
 #
 
 class MrRoboto(commands.AutoShardedBot):
-    def __init__(self):
-        config = config_h.get()
-
+    def __init__(self, config):
         super().__init__(
             command_prefix=config['commandPrefix'],
             case_insensitive=True,
@@ -67,21 +65,17 @@ class MrRoboto(commands.AutoShardedBot):
             self.remove_cog(cog_name)
 
         try:
-            check = getattr(cog, 'requirement_check')
+            if not cog.requirement_check():
+                raise ClientException(f'Cog named {cog_name!r} did not fulfill the requirement check')
         except AttributeError:
             pass
-        else:
-            if not check():
-                raise ClientException(f'Cog named {cog_name!r} did not fulfill the requirement check')
 
         cog = cog._inject(self)
         self._BotBase__cogs[cog_name] = cog
 
-    async def start(self):
-        config = config_h.get()
-
+    async def start(self, *args, **kwargs):
         await self.db.start()
-        await super().start(config['discordToken'], reconnect=True)
+        await super().start(*args, **kwargs)
 
     async def close(self):
         await super().close()
@@ -131,8 +125,10 @@ class MrRoboto(commands.AutoShardedBot):
 #
 
 def main():
-    client = MrRoboto()
-    client.run()
+    config = config_h.get()
+
+    client = MrRoboto(config)
+    client.run(config['discordToken'], reconnect=True)
 
 if __name__ == '__main__':
     main()

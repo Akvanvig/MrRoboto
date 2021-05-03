@@ -13,7 +13,7 @@ class PostgresDB:
         self.db_uri = f"postgresql+asyncpg://{config['user']}:{config['password']}@{config['host']}/{config['database']}"
 
         try:
-            test = sa.create_engine(db_uri)
+            test = sa.create_engine(self.db_uri)
         except Exception:
             self._exists = False
         else:

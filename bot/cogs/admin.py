@@ -34,7 +34,7 @@ class Admin(commands.Cog):
         )
 
     def requirement_check(self):
-        if not self.client.db.connected():
+        if not self.client.db.exists():
             return False
 
         return True

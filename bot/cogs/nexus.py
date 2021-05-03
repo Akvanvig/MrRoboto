@@ -43,7 +43,7 @@ class Nexus(commands.Cog):
 	def requirement_check(self):
 		config = config_h.get()
 
-		if not self.client.db.connected():
+		if not self.client.db.exists():
 			return False
 
 		if not "nexusApiToken" in config:

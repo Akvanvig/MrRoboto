@@ -27,8 +27,8 @@ class MrRoboto(commands.AutoShardedBot):
             case_insensitive=True,
             owner_ids=config['ownerIds']
         )
-
-        self.db = db_h.PostgresDB()
+        self.db = db_h.PostgresDB(config['postgresql'])
+        self.__load_extensions()
 
     def __load_extensions(self):
         cogs_dir = path.join(path.dirname(__file__), "cogs")
@@ -80,8 +80,7 @@ class MrRoboto(commands.AutoShardedBot):
     async def start(self):
         config = config_h.get()
 
-        await self.db.start(config['postgresql'])
-        self.__load_extensions()
+        await self.db.start()
         await super().start(config['discordToken'], reconnect=True)
 
     async def close(self):

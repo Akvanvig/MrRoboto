@@ -135,7 +135,7 @@ class Nexus(commands.Cog):
         if not channel:
             raise ChannelError("Channel has been deleted")
 
-        version = mod_changelog_response.keys()[-1]
+        version = list(mod_changelog_response.keys())[-1]
         changelog = '\n'.join(mod_changelog_response[version])
 
         message = discord.Embed(

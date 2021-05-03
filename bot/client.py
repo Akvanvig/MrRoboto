@@ -25,15 +25,16 @@ class MrRoboto(commands.AutoShardedBot):
             case_insensitive=True,
             owner_ids=config['ownerIds']
         )
-        self.db = db_h.PostgresDB(config['postgresql'])
-        self.__load_extensions()
 
-    def __load_extensions(self):
+        self.db = db_h.PostgresDB(config['postgresql'])
+        self.__load_extensions(config)
+
+    def __load_extensions(self, config):
         cogs_dir = path.join(path.dirname(__file__), "cogs")
         extensions = []
 
         try:
-            ignore = config_h.get()['ignoreExtensions']
+            ignore = config['ignoreExtensions']
         except KeyError:
             ignore = []
 

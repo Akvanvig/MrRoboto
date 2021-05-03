@@ -15,9 +15,9 @@ class PostgresDB:
         try:
             test = sa.create_engine(db_uri)
         except Exception:
-            self.exists = False
+            self._exists = False
         else:
-            self.exists = True
+            self._exists = True
 
     def __getattr__(self, name):
         # Attribute does not exist in PostgresDB,
@@ -28,10 +28,10 @@ class PostgresDB:
         return self._wrapped_engine.__getattribute__(name)
 
     def exists(self):
-        return self.exists
+        return self._exists
 
     async def start(self):
-        if self.exists and not self._wrapped_engine:
+        if self._exists and not self._wrapped_engine:
             self._wrapped_engine = create_async_engine(self.db_uri)
 
             async with self._wrapped_engine.begin() as conn:

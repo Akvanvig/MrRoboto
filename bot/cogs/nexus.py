@@ -184,7 +184,7 @@ class Nexus(commands.Cog):
         response = await web_h.read_website_content(self.client.loop, request)
         response = json.loads(response)
 
-        if response.get("code", default=200) == 404:
+        if response.get("code", 200) == 404:
             raise ModError(response["message"])
 
         async with self.lock:
@@ -196,7 +196,7 @@ class Nexus(commands.Cog):
                     updated=response["updated_timestamp"]
                 ))
 
-        await ctx.send("TEST")
+        await ctx.send(f"\"{response['name']}\" Has been added to the update list in #{channel.name}")
 
     @commands.command(
         name="unsubscribefrommod")
@@ -209,7 +209,7 @@ class Nexus(commands.Cog):
 
         async with self.lock:
             async with self.client.db.begin() as conn:
-                await conn.execute(self.update_table.delete().where(
+                result = await conn.execute(self.update_table.delete().where(
                     sa.and_(
                         "channel_id" == channel.id,
                         "game_domain" == game,
@@ -217,7 +217,10 @@ class Nexus(commands.Cog):
                     )
                 ))
 
-        await ctx.send("TEST")
+                if result.rowcount == 0:
+                    raise Exception()
+
+        await ctx.send(f"Mod has been removed from the update list in #{channel.name}")
 
     #
     # ERRORS

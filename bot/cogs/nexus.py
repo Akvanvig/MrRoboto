@@ -135,17 +135,27 @@ class Nexus(commands.Cog):
         if not channel:
             raise ChannelError("Channel has been deleted")
 
-        version = list(mod_changelog_response.keys())[-1]
-        changelog = '\n'.join(mod_changelog_response[version])
+        changelog_versions = list(mod_changelog_response.keys())
+        changelog = ""
+
+        if changelog_versions:
+            version = changelog_versions[-1]
+            changelog_l = mod_changelog_response[version]
+
+            if len(changelog_l) > 5:
+                changelog_l = changelog_l[:5]
+
+            changelog_l = '\n'.join(changelog_l)
+            changelog = f"Latest changelog [{version}]:\n{changelog_l}\n..."
 
         message = discord.Embed(
-            title=f"Update: {mod_response['name']}",
+            title=mod_response["name"],
             url=f"{self.nexus_url}{game}/mods/{mod}",
-            description=f"{util_h.remove_html_tags(mod_response['summary'])}\n\nChangelog [{version}]: {changelog}"
+            description=f"{util_h.remove_html_tags(mod_response['summary'])}\n\n{changelog}"
         )
         message.set_author(name=mod_response["uploaded_by"], url=f"{self.nexus_url}users/{mod_response['user']['member_id']}")
         message.set_image(url=mod_response["picture_url"])
-        message.set_footer(text=f"Was updated in the last hour")
+        message.set_footer(text=f"The mod was updated within the last hour")
 
         await channel.send(embed=message)
 

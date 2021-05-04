@@ -311,6 +311,7 @@ class Nexus(commands.Cog):
 
     @subscribe_mod.error
     @unsubscribe_mod.error
+    @list_mods.error
     async def subscription_error(self, ctx, error):
         if isinstance(error, commands.CommandError):
             await ctx.send(error)

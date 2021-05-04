@@ -35,10 +35,10 @@ def nexus_mod(argument):
     url = url._replace(query="", fragment="").path
     url = url.strip('/').split('/')
 
-    if len(url) != 2:
+    if len(url) != 3:
         return None
 
-    return url[0], int(url[1])
+    return url[0], int(url[2])
 
 #
 # CLASSES
@@ -296,7 +296,7 @@ class Nexus(commands.Cog):
         if not mods:
             raise ModError(f"There are no subscribed mods in {channel.mention}")
 
-        mods = [f"{count} - {self.nexus_url}{mod['game_domain']}/{mod['mod_id']}" for count, mod in enumerate(mods, start=1)]
+        mods = [f"{count} - {self.nexus_url}{mod['game_domain']}/mods/{mod['mod_id']}" for count, mod in enumerate(mods, start=1)]
 
         await ctx.send(f"There are {len(mods)} subscribed mods in {channel.mention}:")
 

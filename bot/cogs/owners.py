@@ -33,17 +33,19 @@ class Owners(commands.Cog):
             output = await self.client.loop.run_in_executor(None, blocking_process)
 
             update_str = f"--- {datetime_ext.now()} ---\nUPDATE CHECK"
-            update_content = message_split(output)
+            update_content = message_split(output, length=1950)
 
             for owner_id in self.client.owner_ids:
                 user = await self.client.fetch_user(owner_id)
                 dm = await user.create_dm()
 
-                await dm.send(update_str)
+                #await dm.send(update_str)
 
                 if not update_content[0]:
-                    await dm.send("No outdated packages")
+                    await dm.send(f"{update_str}\nNo outdated packages")
                     continue
+                else:
+                    update_content[0] = f"{update_str}\n{update_content[0]}"
 
                 for part in update_content:
                     await dm.send(f"```{part}```")

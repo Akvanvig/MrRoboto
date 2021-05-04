@@ -39,6 +39,11 @@ class Owners(commands.Cog):
                 user = await self.client.fetch_user(owner_id)
                 dm = await user.create_dm()
 
+<<<<<<< HEAD
+=======
+                #await dm.send(update_str)
+
+>>>>>>> d41b9486174241c6298878aad91a3c85747df07f
                 if not update_content[0]:
                     await dm.send(f"{update_str}\nNo outdated packages")
                     continue

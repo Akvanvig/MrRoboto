@@ -3,6 +3,5 @@ repos:
   rev: v3.4.0
   hooks:
   - id: check-yaml
-  - id: check-ast
   - id: detect-private-key
   - id: trailing-whitespace

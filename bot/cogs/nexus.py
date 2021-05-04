@@ -35,7 +35,7 @@ def nexus_mod(argument):
     url = url._replace(query="", fragment="").path
     url = url.strip('/').split('/')
 
-    if len(url) != 3:
+    if len(url) != 2:
         return None
 
     return url[0], int(url[2])

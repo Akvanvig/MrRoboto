@@ -176,6 +176,8 @@ class Nexus(commands.Cog):
                 changelog = changelog[:11]
                 changelog[10] = "..."
 
+            changelog[0] = f"-{changelog[0]}"
+
             message.add_field(
                 name=f"Latest changelog [{version}]",
                 value='\n-'.join(changelog),
@@ -207,7 +209,7 @@ class Nexus(commands.Cog):
     #
 
     @commands.command(
-        name="subscribetomod")
+        name="subscribeto")
     async def subscribe_mod(self, ctx, mod: nexus_mod, channel: discord.TextChannel = None):
         if not mod:
             raise ModError(f"The given mod is not valid")
@@ -247,7 +249,7 @@ class Nexus(commands.Cog):
         await ctx.send(f"\"{response['name']}\" has been added to the update list in {channel.mention}")
 
     @commands.command(
-        name="unsubscribefrommod")
+        name="unsubscribefrom")
     async def unsubscribe_mod(self, ctx, mod: nexus_mod, channel: discord.TextChannel=None):
         if not mod:
             raise ModError(f"The given mod is not valid")
@@ -271,6 +273,37 @@ class Nexus(commands.Cog):
                     raise ModError(f"There are no subscribed mods in {channel.mention} with the given parameters")
 
         await ctx.send(f"Mod has been removed from the update list in {channel.mention}")
+
+    @commands.command(
+        name="listsubscriptions")
+    async def list_mods(self, ctx, channel: discord.TextChannel=None):
+        if not channel:
+            channel = ctx.channel
+        elif ctx.guild != channel.guild:
+            raise ChannelError("The given channel is not in this server")
+
+        mods = []
+
+        async with self.lock:
+            async with self.client.db.begin() as conn:
+                result = await conn.stream(self.update_table.select().where(
+                    self.update_table.c.channel_id == channel.id
+                ))
+
+                async for row in result:
+                    mods.append(row)
+
+        if not mods:
+            raise ModError(f"There are no subscribed mods in {channel.mention}")
+
+        mods = [f"{count} - {self.nexus_url}{mod['game_domain']}/{mod['mod_id']}" for count, mod in enumerate(mods, start=1)]
+
+        await ctx.send(f"There are {len(mods)} subscribed mods in {channel.mention}:")
+
+        mods = '\n'.join(mods)
+
+        for part in util_h.message_split(mods):
+            await ctx.send(f"```{part}```")
 
     #
     # ERRORS

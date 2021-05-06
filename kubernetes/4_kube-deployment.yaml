@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: roboto
-        image: ghcr.io/akvanvig/mrroboto_no-audio:latest
+        image: ghcr.io/akvanvig/roboto:latest
         command: ["python", "client.py"]
         volumeMounts:
           - name: config
@@ -29,7 +29,7 @@ spec:
             subPath: bot_secrets.json
             readOnly: true
           - name: audiofiles
-            mountPath: MrRoboto/media
+            mountPath: MrRoboto/media/audio
 
       volumes:
         - name: config

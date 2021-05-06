@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
   - name: roboto
-    image: ghcr.io/akvanvig/mrroboto:latest
+    image: ghcr.io/akvanvig/roboto:latest
     command: ["python3", "-m", "http.server", "80"]
     #command: ["python3","client.py"]
 
@@ -22,7 +22,7 @@ spec:
         subPath: bot_secrets.json
         readOnly: true
       - name: audiofiles
-        mountPath: MrRoboto/media
+        mountPath: MrRoboto/media/audio
       - name: bot-files
         mountPath: MrRoboto/bot
 

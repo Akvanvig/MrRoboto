@@ -157,6 +157,13 @@ class Other(commands.Cog):
         # Sending :)
         await ctx.send(embed=embed)
 
+    @commands.command(
+        name='catjam'
+    )
+    async def catjam(self, ctx):
+        """Returns catjam"""
+        gifpath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../media/gifs/catjam.gif'))
+        await ctx.send(file=gifpath)
 #
 # SETUP
 #

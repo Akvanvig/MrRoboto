@@ -28,7 +28,7 @@ spec:
             mountPath: MrRoboto/config/bot_secrets.json
             subPath: bot_secrets.json
             readOnly: true
-          - name: audiofiles
+          - name: mediafiles
             mountPath: MrRoboto/media/audio
 
       volumes:
@@ -38,6 +38,6 @@ spec:
         - name: secrets
           secret:
             secretName: robotobot-secrets
-        - name: audiofiles
+        - name: mediafiles
           persistentVolumeClaim:
-            claimName: nfs-robotoaudiofiles-claim
+            claimName: nfs-robotomediafiles-claim

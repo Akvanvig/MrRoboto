@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: nfs-robotoaudiofiles
+  name: nfs-robotomediafiles
   namespace: roboto
   labels:
     app: roboto
@@ -13,7 +13,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs
   nfs:
-    path: /mnt/disk1/audiofiles
+    path: /mnt/disk1/mediafiles
     server: 192.168.10.6
     readOnly: true
 
@@ -21,7 +21,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nfs-robotoaudiofiles-claim
+  name: nfs-robotomediafiles-claim
   namespace: roboto
   labels:
     app: roboto
@@ -32,8 +32,8 @@ spec:
   resources:
     requests:
       storage: 2Gi
----
 
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -70,7 +70,6 @@ spec:
       storage: 10Gi
 
 ---
-
 apiVersion: v1
 kind: PersistentVolume
 metadata:

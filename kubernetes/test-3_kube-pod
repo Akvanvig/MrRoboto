@@ -13,16 +13,16 @@ spec:
     #command: ["python3","client.py"]
 
     volumeMounts:
-      #- name: config
-      #  mountPath: MrRoboto/config/bot_config.json
-      #  subPath: bot_config.json
-      #  readOnly: true
+      - name: config
+        mountPath: MrRoboto/config/bot_config.json
+        subPath: bot_config.json
+        readOnly: true
       - name: secrets
         mountPath: MrRoboto/config/bot_secrets.json
         subPath: bot_secrets.json
         readOnly: true
-      - name: audiofiles
-        mountPath: MrRoboto/media/audio
+      - name: mediafiles
+        mountPath: MrRoboto/media
       - name: bot-files
         mountPath: MrRoboto/bot
 
@@ -33,9 +33,9 @@ spec:
     - name: secrets
       secret:
         secretName: robotobot-secrets
-    - name: audiofiles
+    - name: mediafiles
       persistentVolumeClaim:
-        claimName: nfs-robotoaudiofiles-claim
+        claimName: nfs-robotomediafiles-claim
     - name: bot-files
       persistentVolumeClaim:
         claimName: nfs-robototest-claim

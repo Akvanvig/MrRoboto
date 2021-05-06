@@ -5,6 +5,7 @@ import json
 import urllib.request
 import urllib.parse
 import datetime  # This should use datetime_ext
+import os.path
 
 from discord.ext import commands
 from common import config_h
@@ -163,7 +164,8 @@ class Other(commands.Cog):
     async def catjam(self, ctx):
         """Returns catjam"""
         gifpath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../media/gifs/catjam.gif'))
-        await ctx.send(file=gifpath)
+        picfile = discord.File(gifpath)
+        await ctx.send(file=picfile)
 #
 # SETUP
 #

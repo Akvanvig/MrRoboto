@@ -13,18 +13,16 @@ from common.util_h import message_split
 class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
-        self.owner_ids = None
         self.outdated_reminder.start()
 
     def cog_unload(self):
         self.outdated_reminder.cancel()
 
     async def cog_check(self, ctx):
-        if not self.owner_ids:
-            app_info = await self.client.application_info()
-            self.owner_ids = [member.id for member in app_info.team.members]
+        app_info = await self.client.application_info()
+        owner_ids = [member.id for member in app_info.team.members]
 
-        return ctx.author.id in self.owner_ids
+        return ctx.author.id in owner_ids
 
     @tasks.loop(hours=168.0)
     async def outdated_reminder(self):
@@ -46,7 +44,10 @@ class Owners(commands.Cog):
                 else:
                     messages.append(f"```{update_content[i]}```")
 
-            for owner_id in self.client.owner_ids:
+            app_info = await self.client.application_info()
+            owner_ids = [member.id for member in app_info.team.members]
+
+            for owner_id in owner_ids:
                 user = await self.client.fetch_user(owner_id)
                 dm = await user.create_dm()
                 for message_part in messages:

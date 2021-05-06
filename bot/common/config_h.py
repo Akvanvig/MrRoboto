@@ -5,7 +5,7 @@ from common import json_h
 # CONST
 #
 
-CONFIG_DIR = path.join(path.dirname(__file__), "../../config")
+CONFIG_DIR = path.abspath(path.join(path.dirname(__file__), '../../config'))
 
 #
 # PRIVATE

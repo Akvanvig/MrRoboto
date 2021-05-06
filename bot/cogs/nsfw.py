@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import random
 
 from discord.ext import commands
-from common.web_h import read_website_content
+from common import web_h
 
 #
 # CLASSES

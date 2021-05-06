@@ -1,15 +1,17 @@
 # Requires powershell 7
 
 # Variables
-$platforms = "arm64v8","amd64"
-$repoDir = "C:\Git-Prosjekter\Discord-bot-py_k3s\discord-bot-py"
-$username = "akvanvig"
-$repository = "ghcr.io"
+Param (
+  [string[]]$platforms = @("arm64v8","amd64"),
+  [string]$repoDir = "C:\Git-Prosjekter\Discord-bot-py_k3s\discord-bot-py",
+  [string]$username = "akvanvig",
+  [string]$repository = "ghcr.io"
+)
 
 # Functions
 $buildImage = {
   param($platform, $username, $repository)
-  docker build --no-cache -t "$repository/$username/mrroboto:$platform" -f ./docker/bot.dockerfile . --build-arg ARCH=$platform
+  docker build --no-cache -t "$repository/$username/mrroboto_no-audio:$platform" -f ./docker/bot.dockerfile . --build-arg ARCH=$platform
 }
 
 # Pre-requisite tests
@@ -21,7 +23,6 @@ If ($host.Version.Major -lt 7){
   exit
 }
 
-
 # Main
 ## Build and push images in separate processes
 Foreach ($platform in $platforms){
@@ -30,8 +31,7 @@ Foreach ($platform in $platforms){
 
 ## Check if images created
 Do {
-  Start-Sleep 15
-  Write-Output $out
+  Start-Sleep 10
   $completed = Get-Job -State "Completed"
   ## Save logs to file and remove jobs
   If ($completed) {
@@ -57,14 +57,12 @@ Write-Output "----"
 Write-Output "All jobs finished"
 Write-Output "----"
 
-$expressionA = "docker manifest create $repository/$username/mrroboto:latest"
-$expressionB = "docker manifest create $repository/$username/mrroboto_no-audio:latest"
+docker manifest rm $repository/$username/roboto
+$expression = "docker manifest create $repository/$username/roboto:latest"
 Foreach ($platform in $platforms){
-  $expressionA = "$expressionA $("--amend $repository/$username/mrroboto:$platform")"
-  $expressionB = "$expressionB $("--amend $repository/$username/mrroboto:$platform")"
+  $expression = "$expression $("--amend $repository/$username/mrroboto_no-audio:$platform")"
+  docker push $repository/$username/mrroboto_no-audio:$platform
 }
 
-Invoke-Expression $expressionA
-Invoke-Expression $expressionB
-docker manifest push "$repository/$username/mrroboto:latest"
-docker manifest push "$repository/$username/mrroboto_no-audio:latest"
+Invoke-Expression $expression
+docker manifest push "$repository/$username/roboto:latest"

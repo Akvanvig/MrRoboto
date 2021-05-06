@@ -22,8 +22,7 @@ class MrRoboto(commands.AutoShardedBot):
     def __init__(self, config):
         super().__init__(
             command_prefix=config['commandPrefix'],
-            case_insensitive=True,
-            owner_ids=config['ownerIds']
+            case_insensitive=True
         )
 
         self.db = db_h.PostgresDB(config['postgresql'])

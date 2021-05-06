@@ -13,24 +13,25 @@ from common.util_h import message_split
 class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.owner_ids = None
         self.outdated_reminder.start()
 
     def cog_unload(self):
         self.outdated_reminder.cancel()
 
     async def cog_check(self, ctx):
-        return ctx.author.id in self.client.owner_ids
+        if not self.owner_ids:
+            app_info = await self.client.application_info()
+            self.owner_ids = [member.id for member in app_info.team.members]
+
+        return ctx.author.id in self.owner_ids
 
     @tasks.loop(hours=168.0)
     async def outdated_reminder(self):
         print("Checking for outdated components...")
 
-        def blocking_process():
-            cmd = [sys.executable, "-m", "pip", "list", "--outdated"]
-            return subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode(sys.stdout.encoding).strip()
-
         try:
-            output = await self.client.loop.run_in_executor(None, blocking_process)
+            output = await self.client.loop.run_in_executor(None, self._get_pip_outdated)
 
             update_str = f"--- {datetime_ext.now()} ---\nUPDATE CHECK"
             update_content = message_split(output, length=1950)
@@ -60,6 +61,10 @@ class Owners(commands.Cog):
     @outdated_reminder.before_loop
     async def before_reminder(self):
         await self.client.wait_until_ready()
+
+    def _get_pip_outdated(self):
+        cmd = [sys.executable, "-m", "pip", "list", "--outdated"]
+        return subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode(sys.stdout.encoding).strip()
 
     #
     # COMMANDS
@@ -91,17 +96,6 @@ class Owners(commands.Cog):
             await ctx.send(f"{e.__class__.__name__}: {e}")
         else:
             await ctx.send("\N{OK HAND SIGN}")
-
-    @commands.command(
-        name='refreshconf',
-        hidden=True)
-    async def refresh_conf(self, ctx):
-        conf = config_h.get(from_disk=True)
-
-        self.client.command_prefix = conf['commandPrefix']
-        self.client.owner_ids = conf['ownerIds']
-
-        await ctx.send("\N{OK HAND SIGN}")
 
 #
 # SETUP

@@ -24,7 +24,6 @@ APT_PACKAGES = [
 EXAMPLE_BOT_CONFIG = {
     'commandPrefix': '?',
     'ignoreExtensions': [
-        'nexus'
     ],
     'ytdlFormatOptions': {
         'format': 'bestaudio/best',
@@ -47,7 +46,6 @@ EXAMPLE_BOT_CONFIG = {
 
 EXAMPLE_BOT_SECRETS = {
     'discordToken': 'fdjkakjdfefehsabh93,.3mejnfe',
-    'ownerIds': [],
     'postgresql': {
         'user': 'postgres',
         'database': 'postgres',

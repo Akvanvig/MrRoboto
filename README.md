@@ -40,7 +40,7 @@
   - kubectl apply -f ./kubernetes/
 
 ### Local:
-Requires separate postgres database
+(Optional) Requires separate postgres database
 
 1. update files in config folder with correct info for your setup:
   - bot_secret.json

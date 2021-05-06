@@ -35,18 +35,24 @@ class Owners(commands.Cog):
 
             update_str = f"--- {datetime_ext.now()} ---\nUPDATE CHECK"
             update_content = message_split(output, length=1950)
+            messages = []
+
+            for i in range(len(update_content)):
+                if i == 0:
+                    if not update_content[0]:
+                        messages.append(f"{update_str}\nNo outdated packages")
+                    else:
+                        messages.append(f"{update_str}\n```{update_content[0]}```")
+                else:
+                    messages.append(f"```{update_content[i]}```")
 
             for owner_id in self.client.owner_ids:
                 user = await self.client.fetch_user(owner_id)
                 dm = await user.create_dm()
-                if not update_content[0]:
-                    await dm.send(f"{update_str}\nNo outdated packages")
-                    continue
-                else:
-                    update_content[0] = f"{update_str}\n{update_content[0]}"
+                for message_part in messages:
+                    await dm.send(message_part)
 
-                for part in update_content:
-                    await dm.send(f"```{part}```")
+
 
             print(update_content)
             print("Finished the outdated component check...")

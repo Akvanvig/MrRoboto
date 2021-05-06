@@ -72,10 +72,11 @@ class Other(commands.Cog):
             {"title": "**Lead Project Manager** & **Service Manager**", "name": "**Adis Pinjic**"},
             {"title": "**Chief Technical Officer of the CTO's Department** & **Cuck**", "name": "**Eirik Habbestad**"},
             {"title": "**Chief Systems Architect** & **Qality Assurance Manager**", "name": "**Audun Solemdal**"},
-            {"title": "**Chief Orkitect** & **Grand Master of the Memologists**", "name": "**Eirik 'El Lolando' Andersen**"},
+            {"title": "**Chief Orkitect**, **hr**, & **Grand Master of the Memologists**", "name": "**Eirik 'El Lolando' Andersen**"},
             {"title": "**Chancellor of the Code** & **President of Marketing**", "name": "**Andreas 'Esteban' Hennestad**"},
             {"title": "**Head Officer of Security** & **Drug Dealer**", "name": "**Mikkel '天皇' Thoresen**"},
             {"title": "**Client Facing Human Resources Specialist** & **Code Harasser**", "name": "**Martina R. Førre**"},
+            {"title": "**Investor** & **Mainframe DevOps Hacker**", "name": "**Bendiks R. Øverbø**"},
             {"title": "code-monkeys", "name": "Anders & Fredrico"}
         ]
 

@@ -52,8 +52,6 @@ class Owners(commands.Cog):
                 for message_part in messages:
                     await dm.send(message_part)
 
-
-
             print(update_content)
             print("Finished the outdated component check...")
 

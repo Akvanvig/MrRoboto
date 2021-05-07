@@ -1,5 +1,7 @@
+import asyncio
 import re
 import json
+import xml.etree.ElementTree as ET
 
 from urllib.request import urlopen
 from functools import wraps, partial
@@ -20,9 +22,16 @@ class RequirementError(Exception):
     def __init__(self):
         super().__init__("The extension did not pass the requirement check")
 
-def _blocking_network_io(request):
+def _blocking_network_io(request, format_):
     with urlopen(request) as response:
-        return response.read()
+        content = response.read()
+
+    if format_ is dict:
+        return json.loads(content)
+    elif format_ is ET:
+        return ET.fromstring(content)
+    else:
+        return content
 
 #
 # PUBLIC
@@ -38,8 +47,11 @@ def requirement_check(check):
         return wrapper
     return decorator
 
-def read_website_content(loop, request):
-    return loop.run_in_executor(None, partial(_blocking_network_io, request))
+def read_website_content(request, format_=None, loop=None):
+    if loop is None:
+        loop = asyncio.get_event_loop()
+
+    return loop.run_in_executor(None, partial(_blocking_network_io, request, format_))
 
 # Splits a message into requested length parts
 # Gives option to split on custom symbol

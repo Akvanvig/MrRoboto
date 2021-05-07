@@ -127,8 +127,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{game}/mods/{mod}.json"
         )
 
-        mod_response = await util_h.read_website_content(self.client.loop, request)
-        mod_response = json.loads(mod_response)
+        mod_response = await util_h.read_website_content(request, dict)
         new_date = mod_response["updated_timestamp"]
 
         if new_date <= old_date:
@@ -139,8 +138,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{game}/mods/{mod}/changelogs.json"
         )
 
-        mod_changelog_response = await util_h.read_website_content(self.client.loop, request)
-        mod_changelog_response = json.loads(mod_changelog_response)
+        mod_changelog_response = await util_h.read_website_content(request, dict)
         channel = await self.client.fetch_channel(channel_id)
 
         if not channel:
@@ -218,8 +216,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{mod[0]}/mods/{mod[1]}.json"
         )
 
-        response = await util_h.read_website_content(self.client.loop, request)
-        response = json.loads(response)
+        response = await util_h.read_website_content(request, dict)
 
         if response.get("code", 200) == 404:
             raise ModError(response["message"])

@@ -30,9 +30,8 @@ class Nsfw(commands.Cog):
         search = search.replace(" ", "*")
         url = f"https://rule34.xxx/index.php?page=dapi&s=post&q=index&tags={urllib.parse.quote_plus(search)}"
 
-        # Feching data
-        content = await util_h.read_website_content(self.client.loop, url)
-        tree = ET.fromstring(content)
+        # Fetching data
+        tree = await util_h.read_website_content(url, ET)
 
         if not len(tree):
             await ctx.send(f"No results found for {search}")

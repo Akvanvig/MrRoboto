@@ -34,8 +34,9 @@ class Weather(commands.Cog):
         here_api_url = f"https://discover.search.hereapi.com/v1/discover?at={lat},{lon}&limit=1&q={urllib.parse.quote_plus(search)}&apiKey={here_api_token}"
 
         # Fetch data
-        content = await util_h.read_website_content(self.client.loop, here_api_url)
-        json_content = json.loads(content)
+        print("HAHAHA")
+        json_content = await util_h.read_website_content(here_api_url, dict)
+        print("LOLOL")
 
         result_coords = json_content["items"][0]["position"]
         result_loc = json_content["items"][0]["address"]
@@ -46,8 +47,7 @@ class Weather(commands.Cog):
             url=f"https://api.met.no/weatherapi/locationforecast/2.0/compact.json?lat={round(result_coords['lat'],3)}&lon={round(result_coords['lng'],3)}"
         )
 
-        content = await util_h.read_website_content(self.client.loop, search_request)
-        json_content = json.loads(content)
+        json_content = await util_h.read_website_content(search_request, dict)
 
         meta = json_content["properties"]["meta"]
         timeseries = json_content["properties"]["timeseries"]

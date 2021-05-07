@@ -8,8 +8,7 @@ import datetime  # This should use datetime_ext
 import os.path
 
 from discord.ext import commands
-from common import config_h
-from common.web_h import read_website_content
+from common import config_h, util_h
 
 #
 # CLASSES
@@ -111,7 +110,7 @@ class Other(commands.Cog):
         here_api_url = f"https://discover.search.hereapi.com/v1/discover?at={lat},{lon}&limit=1&q={urllib.parse.quote_plus(search)}&apiKey={here_api_token}"
 
         # Fetch data
-        content = await read_website_content(self.client.loop, here_api_url)
+        content = await util_h.read_website_content(self.client.loop, here_api_url)
         json_content = json.loads(content)
 
         result_coords = json_content["items"][0]["position"]
@@ -123,7 +122,7 @@ class Other(commands.Cog):
             url=f"https://api.met.no/weatherapi/locationforecast/2.0/compact.json?lat={round(result_coords['lat'],3)}&lon={round(result_coords['lng'],3)}"
         )
 
-        content = await read_website_content(self.client.loop, search_request)
+        content = await util_h.read_website_content(self.client.loop, search_request)
         json_content = json.loads(content)
 
         meta = json_content["properties"]["meta"]
@@ -163,9 +162,9 @@ class Other(commands.Cog):
     )
     async def catjam(self, ctx):
         """Returns catjam"""
-        gifpath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../media/gifs/catjam.gif'))
-        picfile = discord.File(gifpath)
-        await ctx.send(file=picfile)
+        gif_path = os.path.join(config_h.MEDIA_DIR, 'gifs/catjam.gif')
+        pic_file = discord.File(gif_path)
+        await ctx.send(file=pic_file)
 #
 # SETUP
 #

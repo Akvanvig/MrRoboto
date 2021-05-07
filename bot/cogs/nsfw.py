@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import random
 
 from discord.ext import commands
-from common import web_h
+from common import util_h
 
 #
 # CLASSES
@@ -31,7 +31,7 @@ class Nsfw(commands.Cog):
         url = f"https://rule34.xxx/index.php?page=dapi&s=post&q=index&tags={urllib.parse.quote_plus(search)}"
 
         # Feching data
-        content = await web_h.read_website_content(self.client.loop, url)
+        content = await util_h.read_website_content(self.client.loop, url)
         tree = ET.fromstring(content)
 
         if not len(tree):

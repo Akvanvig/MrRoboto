@@ -1,11 +1,12 @@
 import os.path as path
-from common import json_h
+from common import util_h
 
 #
 # CONST
 #
 
 CONFIG_DIR = path.abspath(path.join(path.dirname(__file__), '../../config'))
+MEDIA_DIR = path.abspath(path.join(path.dirname(__file__), '../../media'))
 
 #
 # PRIVATE
@@ -17,8 +18,8 @@ def _read_from_disk():
         secrets_file = path.join(CONFIG_DIR, "bot_secrets.json")
 
         # Read
-        bot_config = json_h.get_json(config_file)
-        bot_secrets = json_h.get_json(secrets_file)
+        bot_config = util_h.get_json(config_file)
+        bot_secrets = util_h.get_json(secrets_file)
 
         # Merge
         return {**bot_config, **bot_secrets}

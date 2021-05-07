@@ -7,7 +7,7 @@ import urllib.request
 
 from urllib.parse import urlparse
 from discord.ext import commands, tasks
-from common import config_h, web_h, util_h
+from common import config_h, util_h
 
 
 class HttpError(Exception):
@@ -138,7 +138,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{game}/mods/{mod}.json"
         )
 
-        mod_response = await web_h.read_website_content(self.client.loop, request)
+        mod_response = await util_h.read_website_content(self.client.loop, request)
         mod_response = json.loads(mod_response)
         new_date = mod_response["updated_timestamp"]
 
@@ -150,7 +150,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{game}/mods/{mod}/changelogs.json"
         )
 
-        mod_changelog_response = await web_h.read_website_content(self.client.loop, request)
+        mod_changelog_response = await util_h.read_website_content(self.client.loop, request)
         mod_changelog_response = json.loads(mod_changelog_response)
         channel = await self.client.fetch_channel(channel_id)
 
@@ -228,7 +228,7 @@ class Nexus(commands.Cog):
             url=f"{self.api_url}games/{mod[0]}/mods/{mod[1]}.json"
         )
 
-        response = await web_h.read_website_content(self.client.loop, request)
+        response = await util_h.read_website_content(self.client.loop, request)
         response = json.loads(response)
 
         if response.get("code", 200) == 404:

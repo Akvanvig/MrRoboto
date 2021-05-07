@@ -8,7 +8,6 @@ import random
 
 from async_timeout import timeout
 from functools import partial
-from common.json_h import *
 from common.util_h import *
 from common import config_h
 from discord.ext import commands
@@ -309,7 +308,7 @@ class Audio(commands.Cog):
     __slots__ = ('client', 'players')
 
     def __init__(self, client):
-        audiofilesPath = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../media/audio'))
+        audiofilesPath = os.path.join(config_h.MEDIA_DIR, 'audio')
         audioJsonPath = os.path.join(config_h.CONFIG_DIR, 'audio.json')
 
         self.client = client

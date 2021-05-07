@@ -1,14 +1,31 @@
 import re
+import json
+
+from urllib.request import urlopen
+from functools import partial
+
 #
 # CONSTANTS
 #
 
 MSG_LIMIT = 1990
-_HTML_RE = re.compile(r'<[^>]+>')
 
 #
+# PRIVATE
 #
+
+_HTML_RE = re.compile(r'<[^>]+>')
+
+def _blocking_network_io(request):
+    with urlopen(request) as response:
+        return response.read()
+
 #
+# PUBLIC
+#
+
+def read_website_content(loop, request):
+    return loop.run_in_executor(None, partial(_blocking_network_io, request))
 
 # Splits a message into requested length parts
 # Gives option to split on custom symbol
@@ -24,6 +41,17 @@ def message_split(message, length=MSG_LIMIT, split="\n"):
     resultlist.append(message)
     return resultlist
 
-# Remove html tags
 def remove_html_tags(text):
     return _HTML_RE.sub('', text)
+
+def save_json(obj, path):
+    file = open(path, 'w')
+    json.dump(obj, file, indent=4)
+    file.close()
+
+def get_json(path):
+    file = open(path, 'r')
+    json_obj = json.load(file)
+    file.close()
+
+    return json_obj

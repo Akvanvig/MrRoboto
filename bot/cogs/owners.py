@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import discord
 
 from discord.ext import commands, tasks
 from common import config_h, util_h, time_h
@@ -46,9 +47,13 @@ class Owners(commands.Cog):
 
             for owner_id in self.client.owner_ids:
                 user = await self.client.fetch_user(owner_id)
-                dm = await user.create_dm()
-                for message_part in messages:
-                    await dm.send(message_part)
+
+                try:
+                    dm = await user.create_dm()
+                    for message_part in messages:
+                        await dm.send(message_part)
+                except discord.Forbidden:
+                    pass
 
             print(update_content)
             print("Finished the outdated component check...")

@@ -34,9 +34,7 @@ class Weather(commands.Cog):
         here_api_url = f"https://discover.search.hereapi.com/v1/discover?at={lat},{lon}&limit=1&q={urllib.parse.quote_plus(search)}&apiKey={here_api_token}"
 
         # Fetch data
-        print("HAHAHA")
         json_content = await util_h.read_website_content(here_api_url, dict)
-        print("LOLOL")
 
         result_coords = json_content["items"][0]["position"]
         result_loc = json_content["items"][0]["address"]

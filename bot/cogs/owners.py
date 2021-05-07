@@ -2,9 +2,7 @@ import subprocess
 import sys
 
 from discord.ext import commands, tasks
-from common import config_h
-from common.time_h import datetime_ext
-from common.util_h import message_split
+from common import config_h, util_h, time_h
 
 #
 # CLASSES
@@ -19,10 +17,8 @@ class Owners(commands.Cog):
         self.outdated_reminder.cancel()
 
     async def cog_check(self, ctx):
-        app_info = await self.client.application_info()
-        owner_ids = [member.id for member in app_info.team.members]
-
-        return ctx.author.id in owner_ids
+        is_owner = await self.client.is_owner(ctx.author)
+        return is_owner
 
     @tasks.loop(hours=168.0)
     async def outdated_reminder(self):
@@ -31,8 +27,8 @@ class Owners(commands.Cog):
         try:
             output = await self.client.loop.run_in_executor(None, self._get_pip_outdated)
 
-            update_str = f"--- {datetime_ext.now()} ---\nUPDATE CHECK"
-            update_content = message_split(output, length=1950)
+            update_str = f"--- {time_h.datetime_ext.now()} ---\nUPDATE CHECK"
+            update_content = util_h.message_split(output, length=1950)
             messages = []
 
             for i in range(len(update_content)):
@@ -44,10 +40,11 @@ class Owners(commands.Cog):
                 else:
                     messages.append(f"```{update_content[i]}```")
 
-            app_info = await self.client.application_info()
-            owner_ids = [member.id for member in app_info.team.members]
+            if not self.client.owner_ids:
+                app = await self.client.application_info()
+                self.client.owner_ids = ids = {m.id for m in app.team.members}
 
-            for owner_id in owner_ids:
+            for owner_id in self.client.owner_ids:
                 user = await self.client.fetch_user(owner_id)
                 dm = await user.create_dm()
                 for message_part in messages:

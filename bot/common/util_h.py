@@ -2,7 +2,7 @@ import re
 import json
 
 from urllib.request import urlopen
-from functools import partial
+from functools import wraps, partial
 
 #
 # CONSTANTS
@@ -16,6 +16,10 @@ MSG_LIMIT = 1990
 
 _HTML_RE = re.compile(r'<[^>]+>')
 
+class RequirementError(Exception):
+    def __init__(self):
+        super().__init__("The extension did not pass the requirement check")
+
 def _blocking_network_io(request):
     with urlopen(request) as response:
         return response.read()
@@ -23,6 +27,16 @@ def _blocking_network_io(request):
 #
 # PUBLIC
 #
+
+def requirement_check(check):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(client):
+            if not check(client):
+                raise RequirementError()
+            func(client)
+        return wrapper
+    return decorator
 
 def read_website_content(loop, request):
     return loop.run_in_executor(None, partial(_blocking_network_io, request))

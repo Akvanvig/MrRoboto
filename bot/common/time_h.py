@@ -6,7 +6,6 @@ import re
 import inspect
 import asyncio
 
-from .db_h import PostgresDB
 from functools import partial
 from datetime import timezone, datetime, timedelta
 from discord.utils import sleep_until

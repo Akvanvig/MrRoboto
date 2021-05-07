@@ -1,11 +1,11 @@
-import os
 import asyncio
 import sqlalchemy as sa
 
 from discord import utils, Member
 from discord.ext import commands
-from common.time_h import DEFAULT_TIMEDELTA, datetime_ext, timedelta_ext, Task
 from functools import partial
+from common import util_h
+from common.time_h import DEFAULT_TIMEDELTA, datetime_ext, timedelta_ext, Task
 
 #
 # CONSTANTS
@@ -33,14 +33,8 @@ class Admin(commands.Cog):
             keep_existing=True
         )
 
-    def requirement_check(self):
-        if not self.client.db.exists():
-            return False
-
-        return True
-
     async def cog_check(self, ctx):
-            return ctx.channel.permissions_for(ctx.message.author).administrator
+        return ctx.channel.permissions_for(ctx.message.author).administrator
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -187,11 +181,16 @@ class Admin(commands.Cog):
     async def sudo(self, ctx):
         await ctx.send("You are now running with sudo privileges")
 
-
-
 #
 # SETUP
 #
 
+def check(client):
+    if not client.db.exists():
+        return False
+
+    return True
+
+@util_h.requirement_check(check)
 def setup(client):
     client.add_cog(Admin(client))

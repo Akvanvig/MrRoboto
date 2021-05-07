@@ -9,15 +9,19 @@ from sqlalchemy.ext.asyncio import create_async_engine
 class PostgresDB:
     def __init__(self, config):
         self._wrapped_engine = None
-        self.meta = sa.MetaData()
-        self.db_uri = f"postgresql+asyncpg://{config['user']}:{config['password']}@{config['host']}/{config['database']}"
 
         try:
-            test = sa.create_engine(self.db_uri)
-        except Exception:
+            db_uri_test = f"postgresql://{config['user']}:{config['password']}@{config['host']}/{config['database']}"
+
+            with sa.create_engine(db_uri_test).connect():
+                pass
+        except Exception as e:
             self._exists = False
         else:
             self._exists = True
+            self._db_uri = f"postgresql+asyncpg://{config['user']}:{config['password']}@{config['host']}/{config['database']}"
+
+        self.meta = sa.MetaData()
 
     def __getattr__(self, name):
         # Attribute does not exist in PostgresDB,
@@ -32,7 +36,7 @@ class PostgresDB:
 
     async def start(self):
         if self._exists and not self._wrapped_engine:
-            self._wrapped_engine = create_async_engine(self.db_uri)
+            self._wrapped_engine = create_async_engine(self._db_uri)
 
             async with self._wrapped_engine.begin() as conn:
                     await conn.run_sync(self.meta.create_all)

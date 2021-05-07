@@ -9,10 +9,11 @@ __author__ = "Anders & Fredrico"
 import os
 import asyncio
 import os.path as path
+import db
 
 from discord import ClientException
 from discord.ext import commands
-from common import config_h, db_h
+from common import config_h
 
 #
 # CLASSES
@@ -25,7 +26,7 @@ class MrRoboto(commands.AutoShardedBot):
             case_insensitive=True
         )
 
-        self.db = db_h.PostgresDB(config['postgresql'])
+        self.db = db.PostgresDB(config['postgresql'])
         self.__load_extensions(config)
 
     def __load_extensions(self, config):
@@ -50,28 +51,6 @@ class MrRoboto(commands.AutoShardedBot):
                 self.load_extension(extension)
             except Exception as e:
                 print(e)
-
-    # Sneaky override
-    def add_cog(self, cog):
-        if not isinstance(cog, commands.Cog):
-            raise TypeError('cogs must derive from Cog')
-
-        cog_name = cog.__cog_name__
-        existing = self._BotBase__cogs.get(cog_name)
-
-        if existing is not None:
-            if not override:
-                raise ClientException(f'Cog named {cog_name!r} already loaded')
-            self.remove_cog(cog_name)
-
-        try:
-            if not cog.requirement_check():
-                raise ClientException(f'Cog named {cog_name!r} did not fulfill the requirement check')
-        except AttributeError:
-            pass
-
-        cog = cog._inject(self)
-        self._BotBase__cogs[cog_name] = cog
 
     async def start(self, *args, **kwargs):
         await self.db.start()

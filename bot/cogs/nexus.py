@@ -65,17 +65,6 @@ class Nexus(commands.Cog):
     def cog_unload(self):
         self.post_updates.cancel()
 
-    def requirement_check(self):
-        config = config_h.get()
-
-        if not self.client.db.exists():
-            return False
-
-        if not "nexusApiToken" in config:
-            return False
-
-        return True
-
     async def cog_check(self, ctx):
         return ctx.channel.permissions_for(ctx.message.author).administrator
 
@@ -209,7 +198,8 @@ class Nexus(commands.Cog):
     #
 
     @commands.command(
-        name="subscribeto")
+        name="subscribenexus",
+        aliases=["subnexus"])
     async def subscribe_mod(self, ctx, mod: nexus_mod, channel: discord.TextChannel = None):
         if not mod:
             raise ModError(f"The given mod is not valid")
@@ -248,8 +238,10 @@ class Nexus(commands.Cog):
 
         await ctx.send(f"\"{response['name']}\" has been added to the update list in {channel.mention}")
 
-    @commands.command(
-        name="unsubscribefrom")
+    @commands.group(
+        name="unsubscribenexus",
+        aliases=["unsubnexus"],
+        invoke_without_command=True)
     async def unsubscribe_mod(self, ctx, mod: nexus_mod, channel: discord.TextChannel=None):
         if not mod:
             raise ModError(f"The given mod is not valid")
@@ -272,10 +264,30 @@ class Nexus(commands.Cog):
                 if result.rowcount == 0:
                     raise ModError(f"There are no subscribed mods in {channel.mention} with the given parameters")
 
-        await ctx.send(f"Mod has been removed from the update list in {channel.mention}")
+        await ctx.send(f"The mod has been removed from the update list in {channel.mention}")
+
+    @unsubscribe_mod.command(
+        name='all')
+    async def unsubscribe_mod_all(self, ctx, channel: discord.TextChannel=None):
+        if not channel:
+            channel = ctx.channel
+        elif ctx.guild != channel.guild:
+            raise ChannelError("The given channel is not in this server")
+
+        async with self.lock:
+            async with self.client.db.begin() as conn:
+                result = await conn.execute(self.update_table.delete().where(
+                    self.update_table.c.channel_id == channel.id
+                ))
+
+                if result.rowcount == 0:
+                    raise ModError(f"There are no subscribed mods in {channel.mention}")
+
+        await ctx.send(f"All mods have been removed from the update list in {channel.mention}")
 
     @commands.command(
-        name="listsubscriptions")
+        name="nexussubscriptions",
+        aliases=["nexussubs"])
     async def list_mods(self, ctx, channel: discord.TextChannel=None):
         if not channel:
             channel = ctx.channel
@@ -311,6 +323,7 @@ class Nexus(commands.Cog):
 
     @subscribe_mod.error
     @unsubscribe_mod.error
+    @unsubscribe_mod_all.error
     @list_mods.error
     async def subscription_error(self, ctx, error):
         if isinstance(error, commands.CommandError):
@@ -322,5 +335,17 @@ class Nexus(commands.Cog):
 # SETUP
 #
 
+def check(client):
+    config = config_h.get()
+
+    if not client.db.exists():
+        return False
+
+    if not "nexusApiToken" in config:
+        return False
+
+    return True
+
+@util_h.requirement_check(check)
 def setup(client):
     client.add_cog(Nexus(client))

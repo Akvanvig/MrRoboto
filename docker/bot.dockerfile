@@ -6,6 +6,7 @@ WORKDIR /MrRoboto/
 COPY bot/cogs ./bot/cogs
 COPY bot/common ./bot/common
 COPY bot/client.py ./bot/client.py
+COPY bot/db.py ./bot/db.py
 COPY bot/requirements.txt ./bot/requirements.txt
 COPY docker/install-packages.sh ./bot/install-packages.sh
 

@@ -69,7 +69,7 @@ class Images(commands.Cog):
             cleaned_text = util_h.remove_multi_newlines(text).strip()
 
             if not cleaned_text:
-                await ctx.send("Image {i}: No text detected")
+                await ctx.send(f"Image {i}: No text detected")
                 continue
 
             split_message = util_h.message_split(text)

@@ -31,10 +31,14 @@ class Images(commands.Cog):
 
             for url in image_urls:
                 try:
-                    raw = await util_h.read_website_content(url)
-                    image_binaries.append(raw)
+                    if discord.Asset.BASE in url:
+                        raw = await self.client.http.get_from_cdn(url)
+                    else:
+                        raw = await util_h.read_website_content(url)
                 except:
                     pass
+                else:
+                    image_binaries.append(BytesIO(raw))
 
         if not image_binaries:
             # Make this a specific error
@@ -42,9 +46,9 @@ class Images(commands.Cog):
 
         images = []
 
-        for raw in image_binaries:
+        for bytes_io in image_binaries:
             try:
-                images.append(Image.open(BytesIO(raw)))
+                images.append(Image.open(bytes_io))
             except:
                 pass
 
@@ -85,7 +89,7 @@ class Images(commands.Cog):
 
     @imagetotext.error
     async def image_error(self, ctx, error):
-        pass
+        await ctx.send(error)
 
 #
 # SETUP

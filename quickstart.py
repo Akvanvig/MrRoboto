@@ -20,7 +20,6 @@ APT_PACKAGES = [
     'python3-pip',
     'ffmpeg',
     'tesseract-ocr'
-
 ]
 
 EXAMPLE_BOT_CONFIG = {

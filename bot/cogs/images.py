@@ -20,7 +20,7 @@ class Images(commands.Cog):
 
         for attachment in ctx.message.attachments:
             raw = await attachment.read()
-            image_binaries.append(raw)
+            image_binaries.append(BytesIO(raw))
 
         if len(message := ctx.message.clean_content.split(' ', 1)) > 1:
             image_urls = []

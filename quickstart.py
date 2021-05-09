@@ -18,7 +18,9 @@ APT_PACKAGES = [
     'libnacl-dev',
     'libpq-dev',
     'python3-pip',
-    'ffmpeg'
+    'ffmpeg',
+    'tesseract-ocr'
+
 ]
 
 EXAMPLE_BOT_CONFIG = {

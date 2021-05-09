@@ -8,7 +8,7 @@ export LIBSODIUM_MAKE_ARGS=-j
 #Installing required packages
 apt-get update
 apt-get -y upgrade
-apt-get -y install libffi-dev libnacl-dev libpq-dev ffmpeg python3-pip #--no-install-recommends
+apt-get -y install libffi-dev libnacl-dev libpq-dev ffmpeg tesseract-ocr python3-pip #--no-install-recommends
 
 # installing pip packages
 python3 -m pip install --upgrade pip

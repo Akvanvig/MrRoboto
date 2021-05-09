@@ -3,3 +3,5 @@ websockets
 youtube-dl
 sqlalchemy
 asyncpg
+Pillow
+pytesseract

@@ -72,7 +72,7 @@ class Images(commands.Cog):
                 await ctx.send(f"Image {i}: No text detected")
                 continue
 
-            split_message = util_h.message_split(text)
+            split_message = util_h.message_split(cleaned_text)
             split_message = [f"```{part}```" for part in split_message]
             split_message[0] = f"Image {i}: {split_message[0]}"
 

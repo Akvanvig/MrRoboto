@@ -73,9 +73,8 @@ class Images(commands.Cog):
                 continue
 
             split_message = util_h.message_split(text)
-
-            split_message[0] = f"Image {i}: ```{split_message[0]}"
-            split_message[-1] = f"{split_message[-1]}```"
+            split_message = [f"```{part}```" for part in split_message]
+            split_message[0] = f"Image {i}: {split_message[0]}"
 
             for part in split_message:
                 await ctx.send(part)

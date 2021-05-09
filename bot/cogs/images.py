@@ -67,6 +67,11 @@ class Images(commands.Cog):
         for i, image in enumerate(images, 1):
             text = pytesseract.image_to_string(image)
             cleaned_text = util_h.remove_multi_newlines(text).strip()
+
+            if not cleaned_text:
+                await ctx.send("Image {i}: No text detected")
+                continue
+
             split_message = util_h.message_split(text)
 
             split_message[0] = f"Image {i}: ```{split_message[0]}"

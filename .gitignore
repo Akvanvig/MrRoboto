@@ -1,4 +1,7 @@
-# Conf files
+# Vscode settings
+.vscode/
+
+# Config files
 **/config/
 
 # Bytecode

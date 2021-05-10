@@ -455,7 +455,7 @@ class Audio(commands.Cog):
                 path = os.path.join(self.audiofilesPath, song.getFilepath())
                 source = await YTDLSource.create_source_local(ctx, path, song.getBasename(), loop=self.client.loop, notifyQueue=False)
                 await player.queue.put(source)
-            await ctx.send(f"Requested list {search} has been added to queue")
+            await ctx.send(f"Requested list {query} has been added to queue")
 
         # If songname or alias for song is given, that single song will be played
         elif queryLower in songDict:

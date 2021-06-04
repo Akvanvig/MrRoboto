@@ -64,7 +64,7 @@ class Other(commands.Cog):
             {"title": "**Head Officer of Security** & **Drug Dealer**", "name": "**Mikkel '天皇' Thoresen**"},
             {"title": "**Client Facing Human Resources Specialist** & **Code Harasser**", "name": "**Martina R. Førre**"},
             {"title": "**Investor** & **Mainframe DevOps Hacker**", "name": "**Bendiks R. Øverbø**"},
-            {"title": "**Cloud Enginør** & **Reitan Group Representative**", "name": "Magnar Reitan"},
+            {"title": "**Cloud Enginør** & **Reitan Group Representative**", "name": "**Magnar Reitan**"},
             {"title": "code-monkeys", "name": "Anders & Fredrico"}
         ]
 

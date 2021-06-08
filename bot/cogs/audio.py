@@ -632,7 +632,7 @@ class Audio(commands.Cog):
         if not vc or not vc.is_connected():
             return await ctx.send("I am not currently connected to voice!", delete_after=20)
 
-        if not 0 < vol < 200 or not vol == 999:
+        if not 0 < vol < 200 and not vol == 999:
             return await ctx.send("Please enter a value between 1 and 100.")
 
         player = self.get_player(ctx)

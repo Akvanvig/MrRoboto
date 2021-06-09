@@ -20,11 +20,11 @@ spec:
         image: ghcr.io/akvanvig/roboto:latest
         resources:
           requests:
-            memory: "265M"
-            cpu: "500m"
+            memory: "100Mi"
+            cpu: "50m"
           limits:
-            memory: "1G"
-            cpu: "1000M"
+            memory: "300Mi"
+            cpu: "150m"
         command: ["python", "client.py"]
         volumeMounts:
           - name: config

@@ -18,6 +18,13 @@ spec:
       containers:
       - name: roboto
         image: ghcr.io/akvanvig/roboto:latest
+        resources:
+          requests:
+            memory: "265M"
+            cpu: "500m"
+          limits:
+            memory: "1G"
+            cpu: "1G"
         command: ["python", "client.py"]
         volumeMounts:
           - name: config

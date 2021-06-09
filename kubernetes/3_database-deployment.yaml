@@ -18,6 +18,13 @@ spec:
       containers:
         - name: roboto-postgres
           image: postgres
+          resources:
+            requests:
+              memory: "265M"
+              cpu: "500m"
+            limits:
+              memory: "1G"
+              cpu: "1G"
           ports:
             - containerPort: 5432
           envFrom:

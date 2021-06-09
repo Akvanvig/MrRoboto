@@ -24,7 +24,7 @@ spec:
             cpu: "500m"
           limits:
             memory: "1G"
-            cpu: "1G"
+            cpu: "1000M"
         command: ["python", "client.py"]
         volumeMounts:
           - name: config

@@ -24,7 +24,7 @@ spec:
               cpu: "500m"
             limits:
               memory: "1G"
-              cpu: "1G"
+              cpu: "1000m"
           ports:
             - containerPort: 5432
           envFrom:

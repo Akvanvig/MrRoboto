@@ -5,7 +5,7 @@ export DEBIAN_FRONTEND=noninteractive
 #Installing required packages
 apt-get update
 apt-get -y upgrade
-apt-get -y install libffi-dev libnacl-dev libpq-dev ffmpeg tesseract-ocr # --no-install-recommends
+apt-get -y install libffi-dev libnacl-dev libpq-dev ffmpeg tesseract-ocr tesseract-ocr-nor tesseract-ocr-jpn tesseract-ocr-ara tesseract-ocr-kor # --no-install-recommends
 
 # Delete cached files we don't need anymore:
 apt-get clean

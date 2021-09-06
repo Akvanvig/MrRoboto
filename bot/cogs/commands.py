@@ -64,6 +64,7 @@ class Other(commands.Cog):
             "**Head Officer of Security** & **Drug Dealer** -- **Mikkel '天皇' Thoresen**\n"
             "**Client Facing Human Resources Specialist** & **Code Harasser** -- **Martina R. Førre**\n"
             "**Investor** & **Mainframe DevOps Hacker** -- **Bendiks R. Øverbø**\n"
+            "**Cloud Enginør** & **Reitan Group Representative** -- **Magnar Reitan**\n"
             "code-monkeys -- Anders & Fredrico"
         )
 

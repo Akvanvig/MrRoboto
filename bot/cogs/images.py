@@ -70,7 +70,7 @@ class Images(commands.Cog):
         images = await self._images_from_ctx(ctx)
 
         for i, image in enumerate(images, 1):
-            image_partial = partial(pytesseract.image_to_string, image)
+            image_partial = partial(pytesseract.image_to_string, image, lang='nor+eng+jpn+ara+kor')
 
             text = await self.client.loop.run_in_executor(None, image_partial)
             cleaned_text = util_h.remove_multi_newlines(text).strip()

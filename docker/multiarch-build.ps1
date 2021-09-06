@@ -3,7 +3,7 @@
 # Variables
 Param (
   [string[]]$platforms = @("arm64v8","amd64"),
-  [string]$repoDir = "C:\Git-Prosjekter\Discord-bot-py_k3s\discord-bot-py",
+  [string]$repoDir = "D:\Git-Prosjekter\Discord-bot-py_k3s\discord-bot-py",
   [string]$username = "akvanvig",
   [string]$repository = "ghcr.io"
 )

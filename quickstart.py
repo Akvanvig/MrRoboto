@@ -19,7 +19,11 @@ APT_PACKAGES = [
     'libpq-dev',
     'python3-pip',
     'ffmpeg',
-    'tesseract-ocr'
+    'tesseract-ocr',
+    'tesseract-ocr-nor',
+    'tesseract-ocr-jpn',
+    'tesseract-ocr-ara',
+    'tesseract-ocr-kor'
 ]
 
 EXAMPLE_BOT_CONFIG = {

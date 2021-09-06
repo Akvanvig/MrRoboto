@@ -36,7 +36,7 @@ class PostgresDB:
 
     async def start(self):
         if self._exists and not self._wrapped_engine:
-            self._wrapped_engine = create_async_engine(self._db_uri)
+            self._wrapped_engine = create_async_engine(self._db_uri, pool_pre_ping=True)
 
             async with self._wrapped_engine.begin() as conn:
                     await conn.run_sync(self.meta.create_all)

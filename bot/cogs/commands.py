@@ -55,24 +55,19 @@ class Other(commands.Cog):
         name='credits')
     async def credits(self, ctx):
         """Show development team behind this magnificent bot"""
-        users = [
-            {"title": "**Lead Project Manager** & **Service Manager**", "name": "**Adis Pinjic**"},
-            {"title": "**Chief Technical Officer of the CTO's Department** & **Cuck**", "name": "**Eirik Habbestad**"},
-            {"title": "**Chief Systems Architect** & **Qality Assurance Manager**", "name": "**Audun Solemdal**"},
-            {"title": "**Chief Orkitect**, **hr**, & **Grand Master of the Memologists**", "name": "**Eirik 'El Lolando' Andersen**"},
-            {"title": "**Chancellor of the Code** & **President of Marketing**", "name": "**Andreas 'Esteban' Hennestad**"},
-            {"title": "**Head Officer of Security** & **Drug Dealer**", "name": "**Mikkel '天皇' Thoresen**"},
-            {"title": "**Client Facing Human Resources Specialist** & **Code Harasser**", "name": "**Martina R. Førre**"},
-            {"title": "**Investor** & **Mainframe DevOps Hacker**", "name": "**Bendiks R. Øverbø**"},
-            {"title": "code-monkeys", "name": "Anders & Fredrico"}
-        ]
+        desc = (
+            "**Lead Project Manager** & **Service Manager** -- **Adis Pinjic**\n"
+            "**Chief Technical Officer of the CTO's Department** & **Cuck** -- **Eirik Habbestad**\n"
+            "**Chief Systems Architect** & **Qality Assurance Manager** -- **Audun Solemdal**\n"
+            "**Chief Orkitect**, **hr**, & **Grand Master of the Memologists** -- **Eirik 'El Lolando' Andersen**\n"
+            "**Chancellor of the Code** & **President of Marketing** -- **Andreas 'Esteban' Hennestad**\n"
+            "**Head Officer of Security** & **Drug Dealer** -- **Mikkel '天皇' Thoresen**\n"
+            "**Client Facing Human Resources Specialist** & **Code Harasser** -- **Martina R. Førre**\n"
+            "**Investor** & **Mainframe DevOps Hacker** -- **Bendiks R. Øverbø**\n"
+            "code-monkeys -- Anders & Fredrico"
+        )
 
-        len_title = len(max([i['title'] for i in users], key=len))
-        len_name = len(max([i['name'] for i in users], key=len))
-
-        fmt = '\n'.join(f"{_['title']:>{len_title}} -- {_['name']:{len_name}}" for _ in users)
-        embed = discord.Embed(title='Credits', description=fmt)
-
+        embed = discord.Embed(title='Credits', description=desc)
         await ctx.send(embed=embed)
 
     @commands.command(

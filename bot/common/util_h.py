@@ -87,7 +87,7 @@ def message_split(message, length=MSG_LIMIT, split='\n'):
     return result_list
 
 def message_truncate(message, length, suffix='...'):
-    if len(message) <= message:
+    if len(message) <= length:
         return message
 
     return ' '.join(message[:length+1-len(suffix)].split(' ')[0:-1]).rstrip() + suffix

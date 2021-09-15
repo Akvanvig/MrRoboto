@@ -11,7 +11,11 @@ Param (
 # Functions
 $buildImage = {
   param($platform, $username, $repository)
-  docker build --no-cache -t "$repository/$username/mrroboto_no-audio:$platform" -f ./docker/bot.dockerfile . --build-arg ARCH=$platform
+  $path = Get-Location
+  docker build --no-cache -t "$repository/$username/mrroboto_no-audio:$platform" -f ./docker/bot.dockerfile . --build-arg ARCH=$platform *>&1 >> "$path\$repository-$platform.log"
+  Write-Output "Saved output for job $platform to $path\$repository-$platform.log"
+  $dict = @{platform = $platform; username = $username; repository = $repository}
+  return $dict
 }
 
 # Pre-requisite tests
@@ -25,24 +29,34 @@ If ($host.Version.Major -lt 7){
 
 # Main
 ## Build and push images in separate processes
+$timer =  [system.diagnostics.stopwatch]::StartNew()
 Foreach ($platform in $platforms){
   Start-Job $buildImage -WorkingDirectory $repoDir -ArgumentList $platform,$username,$repository
 }
+Write-Output ""
 
 ## Check if images created
 Do {
-  Start-Sleep 10
+  Start-Sleep 1
   $completed = Get-Job -State "Completed"
   ## Save logs to file and remove jobs
   If ($completed) {
+    Write-Host -NoNewLine "`r"
     $completed | Foreach-Object {
       $name = $_.name
-      $path = Get-Location
-      Receive-Job -name $name *>&1 >> "$path\$name.log"
+      $result = Receive-Job -name $name
+      Write-Output $result[0]
       Remove-Job -name $name
-      Write-Output "Saved output for job $name to $path\$name.log"
+      $totalSecs =  [math]::Round($timer.Elapsed.TotalSeconds,0)
+      Write-Output "$($result.platform) completed in $totalSecs seconds"
+      docker push "$($result.repository)/$($result.username)/mrroboto_no-audio:$($result.platform)"
+      $totalSecs =  [math]::Round($timer.Elapsed.TotalSeconds,0)
+      Write-Output "$($result.platform) pushed to repo in $totalSecs seconds"
+      Write-Output ""
     }
   }
+$totalSecs =  [math]::Round($timer.Elapsed.TotalSeconds,0)
+Write-Host -NoNewLine "`rScript has been running for $totalSecs seconds"
 } While (Get-Job -State "Running")
 
 ## Check if any tasks failed
@@ -61,8 +75,10 @@ docker manifest rm $repository/$username/roboto
 $expression = "docker manifest create $repository/$username/roboto:latest"
 Foreach ($platform in $platforms){
   $expression = "$expression $("--amend $repository/$username/mrroboto_no-audio:$platform")"
-  docker push $repository/$username/mrroboto_no-audio:$platform
 }
 
 Invoke-Expression $expression
 docker manifest push "$repository/$username/roboto:latest"
+
+$totalSecs =  [math]::Round($timer.Elapsed.TotalSeconds,0)
+Write-Output "All tasks finished $totalSecs seconds"

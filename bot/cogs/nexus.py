@@ -163,11 +163,11 @@ class Nexus(commands.Cog):
                 changelog = changelog[:11]
                 changelog[10] = "..."
 
-            changelog[0] = f"-{changelog[0]}"
+            changelog[0] = f"- {changelog[0]}"
 
             message.add_field(
                 name=f"Latest changelog [{version}]",
-                value='\n-'.join(changelog),
+                value=util_h.message_truncate('\n- '.join(changelog), 1024),
                 inline=False
             )
 

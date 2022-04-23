@@ -139,6 +139,11 @@ class Nexus(commands.Cog):
         )
 
         mod_changelog_response = await util_h.read_website_content(request, dict)
+
+        # Check for nexus api errors
+        if not "name" in mod_response:
+            return None
+
         channel = await self.client.fetch_channel(channel_id)
 
         if not channel:

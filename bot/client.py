@@ -11,7 +11,7 @@ import asyncio
 import os.path as path
 import db
 
-from discord import ClientException
+from discord import ClientException,Intents
 from discord.ext import commands
 from common import config_h
 
@@ -23,7 +23,8 @@ class MrRoboto(commands.AutoShardedBot):
     def __init__(self, config):
         super().__init__(
             command_prefix=config['commandPrefix'],
-            case_insensitive=True
+            case_insensitive=True,
+            intents=Intents.all()
         )
 
         self.db = db.PostgresDB(config['postgresql'])
